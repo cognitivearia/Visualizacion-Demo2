@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev --port 43127 --hostname 127.0.0.1",
-    "build": "next build && node -e \"require('fs').writeFileSync('out/.nojekyll','')\"",
+    "build": "next build && node scripts/prepare-pages.mjs",
     "export:pages": "NEXT_PUBLIC_BASE_PATH=/Visualizacion-Demo npm run build",
     "start": "next start --port 43127 --hostname 127.0.0.1",
     "lint": "eslint"

@@ -29,7 +29,7 @@ Abre [http://localhost:43127](http://localhost:43127).
 
 Origin guarda el código, pero no publica el sitio. La web sale por **GitHub Pages**.
 
-Dirección prevista: [https://cognitivemari.github.io/Visualizacion-Demo/](https://cognitivemari.github.io/Visualizacion-Demo/)
+Dirección: [https://cognitvearia.github.io/Visualizacion-Demo/](https://cognitvearia.github.io/Visualizacion-Demo/)
 
 1. Crea en GitHub un repo vacío llamado `Visualizacion-Demo`.
 2. Desde WSL, en la carpeta del proyecto:
