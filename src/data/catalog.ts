@@ -49,7 +49,7 @@ export const visualizations: Visualization[] = [
     accent: "#4d8cff",
   },
   {
-    slug: "Censo2730",
+    slug: "censo2730",
     title: "Censo político mundial de 2730",
     kicker: "Trescientos años atrás",
     summary: "Qué porcentaje de cada país apoyaba a Oroszlan o a Polip.",
