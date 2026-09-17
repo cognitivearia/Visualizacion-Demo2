@@ -33,7 +33,7 @@ export const visualizations: Visualization[] = [
       "Serie de las regiones Dunántúl, Nagy-Alföld, Karpatenland, Ostseeküste y Alpenvorland. Crece hasta 2945 y se parte entre 2945 y 2999.",
     interaction:
       "Pulsa Reproducir para ver los siglos. Apaga una región en la leyenda. El salto a 2999 es la guerra.",
-    tags: ["tendencia", "regiones", "guerra"],
+    tags: ["tendencia", "regiones", "guerra", "población"],
     accent: "#3dffb0",
   },
   {
@@ -57,7 +57,7 @@ export const visualizations: Visualization[] = [
       "Antes de que el mapa se partiera. Cada barra es un país: azul Oroszlan, morado Polip. Dunántúl es el bloque más leal a Oroszlan.",
     interaction:
       "Filtra por región. Haz clic en un país para ver las cifras absolutas de simpatizantes y oposición.",
-    tags: ["2730", "países", "Oroszlan", "Polip"],
+    tags: ["2730", "países", "Oroszlan", "Polip", "población"],
     accent: "#c45cff",
   },
   {
