@@ -82,5 +82,5 @@ export const project = {
   name: "Archivo 3030",
   line: "Censo de un mundo partido",
   blurb:
-    "Universo cyberpunk / mecha. El año en curso es 3030: la guerra dejó el planeta en manos de Oroszlan y Polip. Este archivo guarda el censo, las simpatías de 2730 y la tendencia por región.",
+    "Archivo de la guerra: actualización #495, hoy se cumplen 300 años de historia escrita, veamos que nos cuentan sus víctimas.",
 }
