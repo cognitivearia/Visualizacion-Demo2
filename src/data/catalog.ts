@@ -18,7 +18,7 @@ export const visualizations: Visualization[] = [
     kicker: "Mapa",
     summary: "El mapa del mundo: cada región se enciende o se apaga con su población.",
     description:
-      "Rosa es Ostseeküste (Patriarchate of Heraria), lima Dunántúl (Protectorate of Panes), menta Nagy-Alföld (Hudevorian Empire), naranja Karpatenland (Diocese of Cordamilia) y azul claro Alpenvorland (Grand Duchy of Avevaria). Cada tierra se apaga con su censo, comparado con su propio pico.",
+      "Rosa es Ostseeküste (Patriarchate of Heraria), lima Dunántúl (Protectorate of Panes), menta Nagy-Alföld (Hudevorian Empire), naranja Karpatenland (Diocese of Cordamilia) y azul claro Alpenvorland (Grand Duchy of Avevaria). .",
     interaction:
       "Pulsa Reproducir o mueve el año. Haz clic en una región para ver sus países de 2730 y cuánto cayó en la guerra.",
     tags: ["mapa", "regiones", "épocas"],
@@ -28,7 +28,7 @@ export const visualizations: Visualization[] = [
     slug: "tendencia",
     title: "Tendencia poblacional",
     kicker: "2568 — 3030",
-    summary: "Población de las cinco regiones, hasta el crac de finales del siglo XXX.",
+    summary: "Población de las cinco regiones, antes y después de la guerra.",
     description:
       "Serie de las regiones Dunántúl, Nagy-Alföld, Karpatenland, Ostseeküste y Alpenvorland. Crece hasta 2945 y se parte entre 2945 y 2999.",
     interaction:
@@ -42,16 +42,16 @@ export const visualizations: Visualization[] = [
     kicker: "Año actual",
     summary: "Cómo se reparte el mapa entre Oroszlan, Polip y el resto.",
     description:
-      "Ocupación mundial en 3030: Oroszlan 48,8 %, Polip 48,4 %, otros 2,8 %. Un planeta partido casi por la mitad.",
+      "Ocupación mundial en 3030: Oroszlan 48,8 %, Polip 48,4 %, otros 2,8 %. La sociedad se ve divida por la influencia política de los partidos.",
     interaction:
       "Haz clic en una porción o en la lista para fijar un bando.",
     tags: ["territorio", "3030", "Oroszlan", "Polip"],
     accent: "#4d8cff",
   },
   {
-    slug: "censo2730",
-    title: "Simpatías por país, 2730",
-    kicker: "Trescientos años antes",
+    slug: "Censo2730",
+    title: "Censo político mundial de 2730",
+    kicker: "Trescientos años atrás",
     summary: "Qué porcentaje de cada país apoyaba a Oroszlan o a Polip.",
     description:
       "Antes de que el mapa se partiera. Cada barra es un país: azul Oroszlan, morado Polip. Dunántúl es el bloque más leal a Oroszlan.",
