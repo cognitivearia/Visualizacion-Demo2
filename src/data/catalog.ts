@@ -18,7 +18,7 @@ export const visualizations: Visualization[] = [
     kicker: "Mapa",
     summary: "El mapa del mundo: cada región se enciende o se apaga con su población.",
     description:
-      "Rosa es Ostseeküste (Patriarchate of Heraria), lima Dunántúl (Protectorate of Panes), menta Nagy-Alföld (Hudevorian Empire), naranja Karpatenland (Diocese of Cordamilia) y azul claro Alpenvorland (Grand Duchy of Avevaria). .",
+      "Rosa es Ostseeküste, lima Dunántúl , menta Nagy-Alföld , naranja Karpatenland y azul claro Alpenvorland. .",
     interaction:
       "Pulsa Reproducir o mueve el año. Haz clic en una región para ver sus países de 2730 y cuánto cayó en la guerra.",
     tags: ["mapa", "regiones", "épocas"],
