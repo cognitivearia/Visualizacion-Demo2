@@ -66,7 +66,7 @@ export const visualizations: Visualization[] = [
     kicker: "Antes / después",
     summary: "Cuánta gente perdió cada región entre el censo viejo y el año actual.",
     description:
-      "Misma geografía, dos siglos de distancia. Ostseeküste, Alpenvorland, Nagy-Alföld y Karpatenland se vacían. Dunántúl es la única región que no cae.",
+      "Aunque la geografía no ha cambiado debido a los esfuerzos del hombre, 300 años en el futuro estas tierras están mucho más vacias.",
     interaction:
       "Pasa el cursor por una barra. El recuadro de abajo resume la caída de cada región.",
     tags: ["comparativa", "regiones"],
