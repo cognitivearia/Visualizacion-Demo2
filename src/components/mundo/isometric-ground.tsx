@@ -1,8 +1,8 @@
 "use client"
 
 import { useEffect, useId, useRef, useState } from "react"
-import type { SoilLayer } from "@/data/moments"
-import { sampleSoil } from "@/data/moments"
+import type { FigureId, SoilLayer } from "@/data/moments"
+import { figures, firstBuildings, sampleSoil } from "@/data/moments"
 import { palette } from "@/lib/palette"
 
 const COLS = 8
@@ -31,6 +31,19 @@ const colonyPaint = {
   leaf: { top: "#9bef55", left: "#3f6212", right: "#65a30d" },
 } as const
 
+const STONE = { top: "#d7c4a8", left: "#6b5344", right: "#a88868" }
+const ROOF = {
+  blue: "#4d8cff",
+  purple: "#c45cff",
+} as const
+
+const figurePaint = {
+  lupine: { top: "#4d8cff", left: "#1d4ed8", right: "#93c5fd", head: "#dbeafe" },
+  fire: { top: "#c45cff", left: "#6b21a8", right: "#e9d5ff", head: "#f3e8ff" },
+} as const
+
+export type GroundScene = "baldio" | "civilizacion" | "cerrado"
+
 const PIXEL_CIRCLE =
   "polygon(18% 0, 82% 0, 100% 18%, 100% 82%, 82% 100%, 18% 100%, 0 82%, 0 18%)"
 
@@ -51,7 +64,6 @@ const minX = Math.min(...cells.map((cell) => cell.x)) - HALF_W - 16
 const maxX = Math.max(...cells.map((cell) => cell.x)) + HALF_W + 16
 const minY = Math.min(...cells.map((cell) => cell.y)) - HALF_H - 36
 const maxY = Math.max(...cells.map((cell) => cell.y)) + HALF_H + 16
-const viewBox = `${minX} ${minY} ${maxX - minX} ${maxY - minY}`
 
 export type SoilReading = {
   sector: string
@@ -63,11 +75,13 @@ export type SoilReading = {
 }
 
 type IsometricGroundProps = {
-  interactive: boolean
+  scene: GroundScene
   reading: SoilReading | null
   lensOpen: boolean
   onSample: (reading: SoilReading) => void
   onCloseLens: () => void
+  activeFigure: FigureId | null
+  onPickFigure: (id: FigureId) => void
 }
 
 function sectorCode(col: number, row: number) {
@@ -90,22 +104,24 @@ function diamond(cx: number, cy: number, hw: number, hh: number) {
   return `${cx},${cy - hh} ${cx + hw},${cy} ${cx},${cy + hh} ${cx - hw},${cy}`
 }
 
-function ColonyBlock({
+function BlockStack({
   cx,
   cy,
   levels,
-  tint,
+  paint,
+  hw,
+  top,
 }: {
   cx: number
   cy: number
   levels: number
-  tint: "gold" | "clay" | "leaf"
+  paint: { top: string; left: string; right: string }
+  hw: number
+  top?: string
 }) {
-  const hw = 16
-  const hh = 8
+  const hh = hw / 2
   const rise = 14 * levels
   const topY = cy - rise
-  const paint = colonyPaint[tint]
   const edge = "#1a0a06"
 
   return (
@@ -122,7 +138,66 @@ function ColonyBlock({
         stroke={edge}
         strokeWidth="2"
       />
+      <polygon points={diamond(cx, topY, hw, hh)} fill={top ?? paint.top} stroke={edge} strokeWidth="2" />
+    </g>
+  )
+}
+
+function PixelFigure({
+  cx,
+  cy,
+  id,
+  name,
+  selected,
+  onPick,
+}: {
+  cx: number
+  cy: number
+  id: FigureId
+  name: string
+  selected: boolean
+  onPick: (id: FigureId) => void
+}) {
+  const hw = 7
+  const hh = 4
+  const body = 18
+  const topY = cy - body
+  const headY = topY - 11
+  const paint = figurePaint[id]
+  const edge = selected ? "#f6edff" : "#1a0a06"
+
+  return (
+    <g
+      role="button"
+      tabIndex={0}
+      aria-label={`${name}. Abrir tarjeta`}
+      aria-pressed={selected}
+      className="cursor-pointer outline-none"
+      onClick={(event) => {
+        event.stopPropagation()
+        onPick(id)
+      }}
+      onKeyDown={(event) => {
+        if (event.key !== "Enter" && event.key !== " ") return
+        event.preventDefault()
+        onPick(id)
+      }}
+    >
+      <polygon points={diamond(cx, cy - 10, 18, 18)} fill="transparent" />
+      <polygon
+        points={`${cx - hw},${topY} ${cx},${topY + hh} ${cx},${cy + hh} ${cx - hw},${cy}`}
+        fill={paint.left}
+        stroke={edge}
+        strokeWidth="2"
+      />
+      <polygon
+        points={`${cx + hw},${topY} ${cx},${topY + hh} ${cx},${cy + hh} ${cx + hw},${cy}`}
+        fill={paint.right}
+        stroke={edge}
+        strokeWidth="2"
+      />
       <polygon points={diamond(cx, topY, hw, hh)} fill={paint.top} stroke={edge} strokeWidth="2" />
+      <polygon points={diamond(cx, headY, 6, 4)} fill={paint.head} stroke={edge} strokeWidth="2" />
     </g>
   )
 }
@@ -194,11 +269,13 @@ function SoilLens({
 }
 
 export function IsometricGround({
-  interactive,
+  scene,
   reading,
   lensOpen,
   onSample,
   onCloseLens,
+  activeFigure,
+  onPickFigure,
 }: IsometricGroundProps) {
   const stageRef = useRef<HTMLDivElement>(null)
   const svgRef = useRef<SVGSVGElement>(null)
@@ -263,15 +340,23 @@ export function IsometricGround({
     })
   }
 
-  const selectedKey = reading ? `${reading.col}-${reading.row}` : null
+  const soil = scene === "baldio"
+  const built = scene === "civilizacion"
+  const selectedKey = soil && reading ? `${reading.col}-${reading.row}` : null
+  const extraSky = built ? 44 : 0
+  const sceneView = `${minX} ${minY - extraSky} ${maxX - minX} ${maxY - minY + extraSky}`
 
   return (
     <div ref={stageRef} className="relative h-full min-h-[28rem]">
       <svg
         ref={svgRef}
-        viewBox={viewBox}
+        viewBox={sceneView}
         role="group"
-        aria-label="Terreno baldío en vista isométrica"
+        aria-label={
+          built
+            ? "Primera civilización: construcciones y fichas de Lupine y Fire"
+            : "Terreno baldío en vista isométrica"
+        }
         className="h-full w-full touch-manipulation"
       >
         {ordered.map((cell) => {
@@ -279,6 +364,10 @@ export function IsometricGround({
           const selected = selectedKey === key
           const fill = groundColor(cell.col, cell.row)
           const blocks = colonies.filter((colony) => colony.col === cell.col && colony.row === cell.row)
+          const stacks = built
+            ? firstBuildings.filter((building) => building.col === cell.col && building.row === cell.row)
+            : []
+          const people = built ? figures.filter((figure) => figure.col === cell.col && figure.row === cell.row) : []
 
           return (
             <g key={key}>
@@ -287,32 +376,53 @@ export function IsometricGround({
                 fill={fill}
                 stroke={selected ? palette.oroszlan : hover === key ? "#fff4c2" : "#2a1208"}
                 strokeWidth={selected ? 3 : 2}
-                className={interactive ? "cursor-pointer outline-none" : undefined}
-                role={interactive ? "button" : undefined}
-                tabIndex={interactive ? 0 : undefined}
-                aria-label={
-                  interactive ? `Tomar muestra de suelo en el sector ${sectorCode(cell.col, cell.row)}` : undefined
-                }
-                onMouseEnter={() => interactive && setHover(key)}
+                className={soil ? "cursor-pointer outline-none" : undefined}
+                role={soil ? "button" : undefined}
+                tabIndex={soil ? 0 : undefined}
+                aria-label={soil ? `Tomar muestra de suelo en el sector ${sectorCode(cell.col, cell.row)}` : undefined}
+                onMouseEnter={() => soil && setHover(key)}
                 onMouseLeave={() => setHover((current) => (current === key ? null : current))}
                 onClick={(event) => {
-                  if (!interactive) return
+                  if (!soil) return
                   takeSample(cell, anchorFromClient(event.clientX, event.clientY))
                 }}
                 onKeyDown={(event) => {
-                  if (!interactive) return
+                  if (!soil) return
                   if (event.key !== "Enter" && event.key !== " ") return
                   event.preventDefault()
                   takeSample(cell, anchorFromTile(cell.x, cell.y))
                 }}
               />
               {blocks.map((block) => (
-                <ColonyBlock
+                <BlockStack
                   key={`${block.col}-${block.row}-${block.levels}`}
                   cx={cell.x}
                   cy={cell.y}
                   levels={block.levels}
-                  tint={block.tint}
+                  hw={16}
+                  paint={colonyPaint[block.tint]}
+                />
+              ))}
+              {stacks.map((stack) => (
+                <BlockStack
+                  key={`edificio-${stack.col}-${stack.row}`}
+                  cx={cell.x}
+                  cy={cell.y}
+                  levels={stack.levels}
+                  hw={18}
+                  paint={STONE}
+                  top={stack.roof ? ROOF[stack.roof] : undefined}
+                />
+              ))}
+              {people.map((figure) => (
+                <PixelFigure
+                  key={figure.id}
+                  cx={cell.x}
+                  cy={cell.y}
+                  id={figure.id}
+                  name={figure.name}
+                  selected={activeFigure === figure.id}
+                  onPick={onPickFigure}
                 />
               ))}
               {selected ? (
@@ -326,7 +436,7 @@ export function IsometricGround({
         })}
       </svg>
 
-      {interactive && lensOpen && reading ? (
+      {soil && lensOpen && reading ? (
         <SoilLens
           reading={reading}
           stageWidth={stage.width}

@@ -35,11 +35,12 @@ export const moments: Moment[] = [
     index: 2,
     year: 2730,
     label: "Primera civilización",
-    open: false,
+    open: true,
     kicker: "Momento 02",
     title: "Primera civilización",
-    blurb: "Las primeras construcciones todavía no están en este corte del archivo.",
-    note: "Este momento viene después. La prehistoria ya se puede explorar.",
+    blurb:
+      "El baldío gana las primeras construcciones, todavía en bloques. El poder es uno: esta civilización ya es un estado totalitario.",
+    note: "Pulsa a Lupine o a Fire. Cada ficha abre una tarjeta corta, no un momento nuevo.",
   },
   {
     id: "incertidumbre",
@@ -50,7 +51,7 @@ export const moments: Moment[] = [
     kicker: "Momento 03",
     title: "Incertidumbre política",
     blurb: "La disputa por el territorio se abre en un corte posterior.",
-    note: "Este momento viene después. La prehistoria ya se puede explorar.",
+    note: "Este momento viene después. 2568 y 2730 ya se pueden explorar.",
   },
   {
     id: "guerra",
@@ -61,7 +62,7 @@ export const moments: Moment[] = [
     kicker: "Momento 04",
     title: "Guerra",
     blurb: "El registro del conflicto todavía no está dibujado.",
-    note: "Este momento viene después. La prehistoria ya se puede explorar.",
+    note: "Este momento viene después. 2568 y 2730 ya se pueden explorar.",
   },
   {
     id: "postguerra",
@@ -72,8 +73,60 @@ export const moments: Moment[] = [
     kicker: "Momento 05",
     title: "Postguerra",
     blurb: "El mundo partido del año 3030 se consulta más adelante.",
-    note: "Este momento viene después. La prehistoria ya se puede explorar.",
+    note: "Este momento viene después. 2568 y 2730 ya se pueden explorar.",
   },
+]
+
+export type FigureId = "lupine" | "fire"
+
+export type Figure = {
+  id: FigureId
+  name: string
+  faction: string
+  color: string
+  col: number
+  row: number
+  line: string
+}
+
+export const figures: Figure[] = [
+  {
+    id: "lupine",
+    name: "Lupine",
+    faction: "Oroszlan",
+    color: "#4d8cff",
+    col: 3,
+    row: 3,
+    line: "Habla por el azul. En 2730 ya no hay colonia: hay un solo poder, y Lupine lo nombra.",
+  },
+  {
+    id: "fire",
+    name: "Fire",
+    faction: "Polip",
+    color: "#c45cff",
+    col: 5,
+    row: 4,
+    line: "Habla por el púrpura. Fire no discute el mando: lo enciende. El estado es uno.",
+  },
+]
+
+export type BuildingRoof = "blue" | "purple"
+
+export type BlockBuilding = {
+  col: number
+  row: number
+  levels: number
+  roof?: BuildingRoof
+}
+
+export const firstBuildings: BlockBuilding[] = [
+  { col: 5, row: 1, levels: 4, roof: "blue" },
+  { col: 4, row: 2, levels: 3 },
+  { col: 1, row: 2, levels: 2 },
+  { col: 0, row: 3, levels: 3, roof: "purple" },
+  { col: 7, row: 2, levels: 2 },
+  { col: 1, row: 4, levels: 2 },
+  { col: 7, row: 4, levels: 3 },
 ]
 
 export type SoilLayerId = "suelo" | "roca" | "agua" | "restos"
