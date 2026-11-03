@@ -1,5 +1,3 @@
-import { mapDim, mixHex, palette } from "@/lib/palette"
-
 export type MomentId =
   | "prehistoria"
   | "civilizacion"
@@ -82,10 +80,10 @@ export type SoilLayer = {
 }
 
 export const soilPalette: { id: SoilLayerId; label: string; color: string; base: number }[] = [
-  { id: "suelo", label: "Suelo", color: palette.mist, base: 44 },
-  { id: "roca", label: "Roca", color: mixHex(mapDim, palette.mist, 0.42), base: 28 },
-  { id: "agua", label: "Agua", color: palette.oroszlan, base: 17 },
-  { id: "restos", label: "Restos", color: palette.polip, base: 11 },
+  { id: "suelo", label: "Suelo", color: "#f0c14a", base: 44 },
+  { id: "roca", label: "Roca", color: "#8a4b32", base: 28 },
+  { id: "agua", label: "Agua", color: "#3de4ff", base: 17 },
+  { id: "restos", label: "Restos", color: "#c45cff", base: 11 },
 ]
 
 export function sampleSoil(col: number, row: number, take: number): SoilLayer[] {
