@@ -24,6 +24,9 @@ export default function HomePage() {
             <Link href="/graficos/mapa" className={buttonVariants()}>
               Abrir el mapa
             </Link>
+            <Link href="/mundo" className={buttonVariants({ variant: "outline" })}>
+              Ver el mundo
+            </Link>
             <Link href="/datos" className={buttonVariants({ variant: "outline" })}>
               Fuentes del censo
             </Link>
