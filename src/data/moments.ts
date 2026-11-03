@@ -8,6 +8,7 @@ export type MomentId =
 export type Moment = {
   id: MomentId
   index: number
+  year: number
   label: string
   open: boolean
   kicker: string
@@ -20,6 +21,7 @@ export const moments: Moment[] = [
   {
     id: "prehistoria",
     index: 1,
+    year: 2568,
     label: "Prehistoria",
     open: true,
     kicker: "Momento 01",
@@ -31,6 +33,7 @@ export const moments: Moment[] = [
   {
     id: "civilizacion",
     index: 2,
+    year: 2730,
     label: "Primera civilización",
     open: false,
     kicker: "Momento 02",
@@ -41,6 +44,7 @@ export const moments: Moment[] = [
   {
     id: "incertidumbre",
     index: 3,
+    year: 2945,
     label: "Incertidumbre política",
     open: false,
     kicker: "Momento 03",
@@ -51,6 +55,7 @@ export const moments: Moment[] = [
   {
     id: "guerra",
     index: 4,
+    year: 2999,
     label: "Guerra",
     open: false,
     kicker: "Momento 04",
@@ -61,6 +66,7 @@ export const moments: Moment[] = [
   {
     id: "postguerra",
     index: 5,
+    year: 3030,
     label: "Postguerra",
     open: false,
     kicker: "Momento 05",

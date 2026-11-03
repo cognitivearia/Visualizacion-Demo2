@@ -4,7 +4,6 @@ import { useState } from "react"
 import { IsometricGround, type SoilReading } from "@/components/mundo/isometric-ground"
 import { moments, soilPalette, type Moment, type MomentId } from "@/data/moments"
 import { palette } from "@/lib/palette"
-import { cn } from "@/lib/utils"
 
 export function WorldShell() {
   const [activeId, setActiveId] = useState<MomentId>("prehistoria")
@@ -23,44 +22,44 @@ export function WorldShell() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div
-        role="tablist"
-        aria-label="Momentos del archivo"
-        className="relative flex snap-x gap-2 overflow-x-auto pb-2"
-      >
-        {moments.map((moment) => {
-          const selected = moment.id === activeId
-          return (
-            <button
-              key={moment.id}
-              type="button"
-              role="tab"
-              id={`momento-${moment.id}`}
-              aria-selected={selected}
-              aria-controls="momento-panel"
-              onClick={() => selectMoment(moment.id)}
-              className={cn(
-                "pixel-tab relative min-w-[10.5rem] flex-1 shrink-0 snap-start",
-                selected && moment.open && "pixel-tab-now",
-                selected && !moment.open && "pixel-tab-soon",
-              )}
-            >
-              <span className="flex items-center gap-2">
+      <div role="tablist" aria-label="Línea de tiempo" className="relative px-1 pt-1">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute top-[6px] right-[10%] left-[10%] flex h-1"
+        >
+          <div className="h-full flex-1" style={{ background: palette.oroszlan }} />
+          <div className="h-full flex-1" style={{ background: palette.polip }} />
+        </div>
+        <div className="relative flex">
+          {moments.map((moment) => {
+            const selected = moment.id === activeId
+            const color = moment.open ? palette.oroszlan : palette.polip
+            return (
+              <button
+                key={moment.id}
+                type="button"
+                role="tab"
+                id={`momento-${moment.id}`}
+                aria-selected={selected}
+                aria-controls="momento-panel"
+                onClick={() => selectMoment(moment.id)}
+                className="flex flex-1 flex-col items-center gap-2 border-0 bg-transparent p-0 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#f6edff]"
+              >
                 <span
-                  className="size-2 shrink-0"
+                  aria-hidden
+                  className="size-4 border-[3px]"
                   style={{
-                    background: selected ? "#140228" : moment.open ? palette.oroszlan : palette.polip,
+                    borderColor: color,
+                    background: selected ? color : "#120228",
                   }}
                 />
-                <span className="text-[10px] tracking-[0.08em]">0{moment.index}</span>
-                {moment.open ? null : (
-                  <span className="ml-auto text-[10px] tracking-[0.08em] uppercase">Próximo</span>
-                )}
-              </span>
-              <span className="mt-1.5 block text-[11px] leading-tight">{moment.label}</span>
-            </button>
-          )
-        })}
+                <span className="text-[12px] leading-none" style={{ color: selected ? color : "#f6edff" }}>
+                  {moment.year}
+                </span>
+              </button>
+            )
+          })}
+        </div>
       </div>
 
       <div
