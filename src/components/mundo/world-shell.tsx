@@ -2,42 +2,59 @@
 
 import { useEffect, useState } from "react"
 import { IsometricGround, type GroundScene, type SoilReading } from "@/components/mundo/isometric-ground"
-import {
-  figures,
-  firstBuildings,
-  moments,
-  soilPalette,
-  type Figure,
-  type FigureId,
-  type Moment,
-  type MomentId,
-} from "@/data/moments"
-import { palette } from "@/lib/palette"
+import { populationTrend, regionKeys } from "@/data/world"
+import { firstBuildings, moments, soilPalette, townspeople, type Moment, type MomentId, type Person, type PersonId } from "@/data/moments"
+import { formatPeople } from "@/lib/format"
+import { palette, regionColors } from "@/lib/palette"
+
+const year2945 = populationTrend.find((row) => row.anio === 2945)
 
 export function WorldShell() {
   const [activeId, setActiveId] = useState<MomentId>("prehistoria")
+  const [viaFire, setViaFire] = useState(false)
   const [reading, setReading] = useState<SoilReading | null>(null)
   const [lensOpen, setLensOpen] = useState(false)
-  const [figureId, setFigureId] = useState<FigureId | null>(null)
+  const [personId, setPersonId] = useState<PersonId | null>(null)
+  const [lupineOpen, setLupineOpen] = useState(false)
   const active = moments.find((moment) => moment.id === activeId) ?? moments[0]
   const scene: GroundScene =
-    active.id === "civilizacion" ? "civilizacion" : active.open ? "baldio" : "cerrado"
-  const figure = figures.find((item) => item.id === figureId) ?? null
+    active.id === "guerra" && viaFire
+      ? "fuego"
+      : active.id === "incertidumbre"
+        ? "incertidumbre"
+        : active.id === "civilizacion"
+          ? "civilizacion"
+          : active.open
+            ? "baldio"
+            : "cerrado"
+  const person = townspeople.find((item) => item.id === personId) ?? null
 
   function selectMoment(id: MomentId) {
     setActiveId(id)
-    setFigureId(null)
+    setViaFire(false)
+    setPersonId(null)
+    setLupineOpen(false)
     if (id !== "prehistoria") setLensOpen(false)
   }
 
+  function enterByFire() {
+    setActiveId("guerra")
+    setViaFire(true)
+    setPersonId(null)
+    setLupineOpen(false)
+    setLensOpen(false)
+  }
+
   useEffect(() => {
-    if (!figure) return
+    if (!person && !lupineOpen) return
     const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setFigureId(null)
+      if (event.key !== "Escape") return
+      setPersonId(null)
+      setLupineOpen(false)
     }
     window.addEventListener("keydown", onKey)
     return () => window.removeEventListener("keydown", onKey)
-  }, [figure])
+  }, [person, lupineOpen])
 
   const spoken = reading
     ? `Sector ${reading.sector}. ${reading.layers.map((layer) => `${layer.label} ${layer.pct}%`).join(", ")}.`
@@ -94,10 +111,18 @@ export function WorldShell() {
         <section className="pixel-frame relative overflow-hidden">
           <div className="pointer-events-none absolute top-3 left-3 z-10 flex flex-wrap gap-2">
             <span className="pixel-chip">
-              {scene === "baldio" ? "Baldío" : scene === "civilizacion" ? "Construcciones" : "Archivo cerrado"}
+              {scene === "baldio"
+                ? "Baldío"
+                : scene === "cerrado"
+                  ? "Archivo cerrado"
+                  : scene === "fuego"
+                    ? "2999"
+                    : "Ciudad"}
             </span>
             {scene === "baldio" ? <span className="pixel-chip">Sin edificios</span> : null}
-            {scene === "civilizacion" ? <span className="pixel-chip">Estado totalitario</span> : null}
+            {scene === "civilizacion" ? <span className="pixel-chip">Vida actual</span> : null}
+            {scene === "incertidumbre" ? <span className="pixel-chip">Lupine al borde</span> : null}
+            {scene === "fuego" ? <span className="pixel-chip">Entrada por FIRE</span> : null}
           </div>
           <div className="h-[30rem] sm:h-[34rem]">
             <IsometricGround
@@ -109,8 +134,8 @@ export function WorldShell() {
                 setLensOpen(true)
               }}
               onCloseLens={() => setLensOpen(false)}
-              activeFigure={scene === "civilizacion" ? figureId : null}
-              onPickFigure={setFigureId}
+              activePerson={scene === "civilizacion" ? personId : null}
+              onPickPerson={setPersonId}
             />
           </div>
           {scene === "cerrado" ? (
@@ -119,12 +144,21 @@ export function WorldShell() {
           {scene === "baldio" && !lensOpen ? (
             <p className="pixel-chip pointer-events-none absolute bottom-3 left-3">Pulsa una baldosa del suelo</p>
           ) : null}
-          {scene === "civilizacion" && !figure ? (
-            <p className="pixel-chip pointer-events-none absolute bottom-3 left-3">Pulsa a Lupine o a Fire</p>
+          {scene === "civilizacion" && !person ? (
+            <p className="pixel-chip pointer-events-none absolute bottom-3 left-3">Pulsa a una persona</p>
+          ) : null}
+          {scene === "incertidumbre" && !lupineOpen ? (
+            <p className="pixel-chip pointer-events-none absolute bottom-3 left-3">Pulsa a Lupine, fuera del mapa</p>
+          ) : null}
+          {scene === "incertidumbre" ? (
+            <LupineMark pressed={lupineOpen} onClick={() => setLupineOpen(true)} />
           ) : null}
           {scene === "cerrado" ? <SoonOverlay moment={active} onBack={() => selectMoment("prehistoria")} /> : null}
-          {scene === "civilizacion" && figure ? (
-            <FigureCard figure={figure} onClose={() => setFigureId(null)} />
+          {scene === "civilizacion" && person ? (
+            <PersonFile person={person} onClose={() => setPersonId(null)} />
+          ) : null}
+          {scene === "fuego" ? (
+            <p className="pixel-chip pointer-events-none absolute bottom-3 left-3">Llegaste con FIRE</p>
           ) : null}
         </section>
 
@@ -132,13 +166,15 @@ export function WorldShell() {
           moment={active}
           scene={scene}
           reading={scene === "baldio" ? reading : null}
-          figure={scene === "civilizacion" ? figure : null}
-          onPickFigure={setFigureId}
+          person={scene === "civilizacion" ? person : null}
+          onPickPerson={setPersonId}
+          lupineOpen={scene === "incertidumbre" && lupineOpen}
+          onFire={enterByFire}
         />
       </div>
 
       <p className="sr-only" aria-live="polite">
-        {lensOpen ? spoken : ""}
+        {lensOpen ? spoken : viaFire ? "Año 2999. Entrada por FIRE." : ""}
       </p>
     </div>
   )
@@ -161,25 +197,84 @@ function SoonOverlay({ moment, onBack }: { moment: Moment; onBack: () => void })
   )
 }
 
-function FigureCard({ figure, onClose }: { figure: Figure; onClose: () => void }) {
+function PersonFile({ person, onClose }: { person: Person; onClose: () => void }) {
   return (
-    <div
-      role="dialog"
-      aria-labelledby="ficha-titulo"
-      className="pixel-panel absolute right-3 bottom-3 z-20 w-64 p-4"
-    >
-      <p className="text-[10px] tracking-[0.12em] uppercase" style={{ color: figure.color }}>
-        {figure.faction}
+    <div role="dialog" aria-labelledby="ficha-titulo" className="pixel-panel absolute right-3 bottom-3 z-20 w-64 p-4">
+      <p className="text-[10px] tracking-[0.12em] uppercase" style={{ color: palette.mist }}>
+        Documento inventado
       </p>
       <h2 id="ficha-titulo" className="mt-1 text-lg">
-        {figure.name}
+        {person.name}
       </h2>
-      <p className="mt-2 text-xs leading-relaxed" style={{ color: "#f6edff" }}>
-        {figure.line}
-      </p>
+      <dl className="mt-3 space-y-1.5 text-xs" style={{ color: "#f6edff" }}>
+        <div className="flex justify-between gap-3">
+          <dt>Edad</dt>
+          <dd>{person.age}</dd>
+        </div>
+        <div className="flex justify-between gap-3">
+          <dt>Género</dt>
+          <dd>{person.gender}</dd>
+        </div>
+        <div>
+          <dt>Familia</dt>
+          <dd className="mt-1 leading-relaxed">{person.family}</dd>
+        </div>
+      </dl>
       <button type="button" onClick={onClose} className="pixel-btn mt-3">
         Cerrar
       </button>
+    </div>
+  )
+}
+
+function LupineMark({ pressed, onClick }: { pressed: boolean; onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={pressed}
+      aria-label="Lupine, fuera del mapa. Abrir la nota"
+      className="absolute top-1/2 left-2 z-20 flex -translate-y-1/2 flex-col items-start gap-1 border-0 bg-transparent p-0"
+    >
+      <svg width="78" height="64" viewBox="0 0 78 64" aria-hidden>
+        <polygon points="18,28 30,22 30,46 18,40" fill="#1d4ed8" stroke="#1a0a06" strokeWidth="2" />
+        <polygon points="30,28 42,22 42,46 30,40" fill="#4d8cff" stroke="#1a0a06" strokeWidth="2" />
+        <polygon points="22,16 34,16 38,24 18,24" fill="#dbeafe" stroke="#1a0a06" strokeWidth="2" />
+        <polygon points="42,30 62,30 62,34 42,34" fill="#4d8cff" stroke="#1a0a06" strokeWidth="2" />
+        <polygon points="58,24 72,32 58,40" fill="#c45cff" stroke="#1a0a06" strokeWidth="2" />
+      </svg>
+      <span className="pixel-chip">Lupine</span>
+    </button>
+  )
+}
+
+function Population2945() {
+  if (!year2945) return null
+  const rows = regionKeys.map((region) => ({ region, value: year2945[region] }))
+  const max = Math.max(...rows.map((row) => row.value))
+  const total = rows.reduce((sum, row) => sum + row.value, 0)
+
+  return (
+    <div className="mt-4">
+      <p className="text-[10px] tracking-[0.1em] uppercase" style={{ color: palette.oroszlan }}>
+        Archivo · población 2945
+      </p>
+      <p className="mt-1 text-[11px] leading-relaxed" style={{ color: "#d7c4ff" }}>
+        Cifras del portal, no inventadas. Total {formatPeople(total)}.
+      </p>
+      <ul className="mt-3 space-y-2">
+        {rows.map((row) => (
+          <li key={row.region}>
+            <div className="flex items-center justify-between gap-2 text-[11px]">
+              <span>{row.region}</span>
+              <span style={{ color: "#d7c4ff" }}>{formatPeople(row.value)}</span>
+            </div>
+            <div className="mt-1 h-2 bg-[#120228]">
+              <div className="h-full" style={{ width: `${(row.value / max) * 100}%`, background: regionColors[row.region] }} />
+            </div>
+          </li>
+        ))}
+      </ul>
     </div>
   )
 }
@@ -188,14 +283,18 @@ function MomentBlurb({
   moment,
   scene,
   reading,
-  figure,
-  onPickFigure,
+  person,
+  onPickPerson,
+  lupineOpen,
+  onFire,
 }: {
   moment: Moment
   scene: GroundScene
   reading: SoilReading | null
-  figure: Figure | null
-  onPickFigure: (id: FigureId) => void
+  person: Person | null
+  onPickPerson: (id: PersonId) => void
+  lupineOpen: boolean
+  onFire: () => void
 }) {
   const layers = reading?.layers ?? soilPalette.map((layer) => ({ ...layer, pct: 0 }))
 
@@ -206,9 +305,13 @@ function MomentBlurb({
       </p>
       <h1 className="mt-2 text-2xl sm:text-3xl">{moment.title}</h1>
       <p className="mt-3 text-xs leading-relaxed sm:text-sm" style={{ color: "#f6edff" }}>
-        {moment.blurb}
+        {scene === "fuego"
+          ? "FIRE abrió esta fecha. No es una persona ni un robot: es el paso de 2945 a 2999. La guerra todavía no está dibujada."
+          : moment.blurb}
       </p>
-      <p className="mt-3 text-xs leading-relaxed sm:text-sm">{moment.note}</p>
+      {scene === "fuego" ? null : (
+        <p className="mt-3 text-xs leading-relaxed sm:text-sm">{moment.note}</p>
+      )}
 
       {scene === "civilizacion" ? (
         <>
@@ -221,34 +324,50 @@ function MomentBlurb({
             </div>
             <div className="border-2 px-3 py-2.5" style={{ borderColor: palette.polip }}>
               <dt className="text-[10px] tracking-[0.1em] uppercase" style={{ color: "#f0d4ff" }}>
-                Poder
+                Personas
               </dt>
-              <dd className="text-2xl">1</dd>
+              <dd className="text-2xl">{townspeople.length}</dd>
             </div>
           </dl>
           <ul className="mt-4 space-y-2">
-            {figures.map((item) => {
-              const selected = figure?.id === item.id
+            {townspeople.map((item) => {
+              const selected = person?.id === item.id
               return (
                 <li key={item.id}>
                   <button
                     type="button"
                     aria-pressed={selected}
-                    onClick={() => onPickFigure(item.id)}
+                    onClick={() => onPickPerson(item.id)}
                     className="flex w-full items-center justify-between border-2 px-3 py-2 text-left text-xs"
                     style={{
-                      borderColor: item.color,
-                      background: selected ? item.color : "#120228",
+                      borderColor: "#d7c4a8",
+                      background: selected ? "#d7c4a8" : "#120228",
                       color: selected ? "#140228" : "#f6edff",
                     }}
                   >
                     <span>{item.name}</span>
-                    <span>{item.faction}</span>
+                    <span>{item.age}</span>
                   </button>
                 </li>
               )
             })}
           </ul>
+        </>
+      ) : scene === "incertidumbre" && lupineOpen ? (
+        <>
+          <p className="mt-4 text-[10px] tracking-[0.1em] uppercase" style={{ color: palette.polip }}>
+            Flavor
+          </p>
+          <p className="mt-2 text-xs leading-relaxed" style={{ color: "#f6edff" }}>
+            Lupine no vive en una baldosa. Está fuera de la ciudad y la señala. Estas dos frases son flavor: el archivo no guarda su voz, solo el gesto.
+          </p>
+          <Population2945 />
+          <button type="button" onClick={onFire} className="pixel-btn mt-5 w-fit">
+            FIRE
+          </button>
+          <p className="mt-2 text-[11px] leading-relaxed" style={{ color: "#d7c4ff" }}>
+            FIRE no es una persona. Pasa a la fecha siguiente, 2999.
+          </p>
         </>
       ) : scene === "baldio" ? (
         <>
@@ -295,7 +414,7 @@ function MomentBlurb({
             </ul>
           </div>
         </>
-      ) : (
+      ) : scene === "fuego" ? null : (
         <p className="mt-6 text-[10px] tracking-[0.12em] uppercase" style={{ color: palette.polip }}>
           Próximo
         </p>

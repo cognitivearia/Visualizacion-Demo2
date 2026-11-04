@@ -1,8 +1,8 @@
 "use client"
 
 import { useEffect, useId, useRef, useState } from "react"
-import type { FigureId, SoilLayer } from "@/data/moments"
-import { figures, firstBuildings, sampleSoil } from "@/data/moments"
+import type { PersonId, PersonTint, SoilLayer } from "@/data/moments"
+import { firstBuildings, sampleSoil, townspeople } from "@/data/moments"
 import { palette } from "@/lib/palette"
 
 const COLS = 8
@@ -33,16 +33,18 @@ const colonyPaint = {
 
 const STONE = { top: "#d7c4a8", left: "#6b5344", right: "#a88868" }
 const ROOF = {
-  blue: "#4d8cff",
-  purple: "#c45cff",
+  clay: "#c45528",
+  slate: "#5c5346",
 } as const
 
-const figurePaint = {
-  lupine: { top: "#4d8cff", left: "#1d4ed8", right: "#93c5fd", head: "#dbeafe" },
-  fire: { top: "#c45cff", left: "#6b21a8", right: "#e9d5ff", head: "#f3e8ff" },
-} as const
+const personPaint: Record<PersonTint, { top: string; left: string; right: string; head: string }> = {
+  denim: { top: "#3d5a80", left: "#1d3557", right: "#7aa2c4", head: "#f0c9a0" },
+  red: { top: "#c44536", left: "#7f1d1d", right: "#f07167", head: "#e8b48a" },
+  green: { top: "#3f6b4a", left: "#1f3d2b", right: "#7dcea0", head: "#d7a574" },
+  ochre: { top: "#c9a227", left: "#7a5b12", right: "#e6c35c", head: "#f3d5b5" },
+}
 
-export type GroundScene = "baldio" | "civilizacion" | "cerrado"
+export type GroundScene = "baldio" | "civilizacion" | "incertidumbre" | "fuego" | "cerrado"
 
 const PIXEL_CIRCLE =
   "polygon(18% 0, 82% 0, 100% 18%, 100% 82%, 82% 100%, 18% 100%, 0 82%, 0 18%)"
@@ -80,8 +82,8 @@ type IsometricGroundProps = {
   lensOpen: boolean
   onSample: (reading: SoilReading) => void
   onCloseLens: () => void
-  activeFigure: FigureId | null
-  onPickFigure: (id: FigureId) => void
+  activePerson: PersonId | null
+  onPickPerson: (id: PersonId) => void
 }
 
 function sectorCode(col: number, row: number) {
@@ -148,29 +150,31 @@ function PixelFigure({
   cy,
   id,
   name,
+  tint,
   selected,
   onPick,
 }: {
   cx: number
   cy: number
-  id: FigureId
+  id: PersonId
   name: string
+  tint: PersonTint
   selected: boolean
-  onPick: (id: FigureId) => void
+  onPick: (id: PersonId) => void
 }) {
   const hw = 7
   const hh = 4
   const body = 18
   const topY = cy - body
   const headY = topY - 11
-  const paint = figurePaint[id]
+  const paint = personPaint[tint]
   const edge = selected ? "#f6edff" : "#1a0a06"
 
   return (
     <g
       role="button"
       tabIndex={0}
-      aria-label={`${name}. Abrir tarjeta`}
+      aria-label={`${name}. Abrir ficha`}
       aria-pressed={selected}
       className="cursor-pointer outline-none"
       onClick={(event) => {
@@ -274,8 +278,8 @@ export function IsometricGround({
   lensOpen,
   onSample,
   onCloseLens,
-  activeFigure,
-  onPickFigure,
+  activePerson,
+  onPickPerson,
 }: IsometricGroundProps) {
   const stageRef = useRef<HTMLDivElement>(null)
   const svgRef = useRef<SVGSVGElement>(null)
@@ -341,10 +345,20 @@ export function IsometricGround({
   }
 
   const soil = scene === "baldio"
-  const built = scene === "civilizacion"
+  const city = scene === "civilizacion" || scene === "incertidumbre" || scene === "fuego"
+  const crowd = scene === "civilizacion"
+  const camps = scene === "baldio" || scene === "cerrado"
   const selectedKey = soil && reading ? `${reading.col}-${reading.row}` : null
-  const extraSky = built ? 44 : 0
+  const extraSky = city ? 44 : 0
   const sceneView = `${minX} ${minY - extraSky} ${maxX - minX} ${maxY - minY + extraSky}`
+  const sceneLabel =
+    scene === "civilizacion"
+      ? "Ciudad de 2730: edificios y personas de la vida común"
+      : scene === "incertidumbre"
+        ? "Ciudad de 2945"
+        : scene === "fuego"
+          ? "Ciudad al entrar en 2999"
+          : "Terreno baldío en vista isométrica"
 
   return (
     <div ref={stageRef} className="relative h-full min-h-[28rem]">
@@ -352,22 +366,22 @@ export function IsometricGround({
         ref={svgRef}
         viewBox={sceneView}
         role="group"
-        aria-label={
-          built
-            ? "Primera civilización: construcciones y fichas de Lupine y Fire"
-            : "Terreno baldío en vista isométrica"
-        }
+        aria-label={sceneLabel}
         className="h-full w-full touch-manipulation"
       >
         {ordered.map((cell) => {
           const key = `${cell.col}-${cell.row}`
           const selected = selectedKey === key
           const fill = groundColor(cell.col, cell.row)
-          const blocks = colonies.filter((colony) => colony.col === cell.col && colony.row === cell.row)
-          const stacks = built
+          const blocks = camps
+            ? colonies.filter((colony) => colony.col === cell.col && colony.row === cell.row)
+            : []
+          const stacks = city
             ? firstBuildings.filter((building) => building.col === cell.col && building.row === cell.row)
             : []
-          const people = built ? figures.filter((figure) => figure.col === cell.col && figure.row === cell.row) : []
+          const people = crowd
+            ? townspeople.filter((person) => person.col === cell.col && person.row === cell.row)
+            : []
 
           return (
             <g key={key}>
@@ -414,15 +428,16 @@ export function IsometricGround({
                   top={stack.roof ? ROOF[stack.roof] : undefined}
                 />
               ))}
-              {people.map((figure) => (
+              {people.map((person) => (
                 <PixelFigure
-                  key={figure.id}
+                  key={person.id}
                   cx={cell.x}
                   cy={cell.y}
-                  id={figure.id}
-                  name={figure.name}
-                  selected={activeFigure === figure.id}
-                  onPick={onPickFigure}
+                  id={person.id}
+                  name={person.name}
+                  tint={person.tint}
+                  selected={activePerson === person.id}
+                  onPick={onPickPerson}
                 />
               ))}
               {selected ? (
