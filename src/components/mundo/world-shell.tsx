@@ -205,7 +205,7 @@ export function WorldShell({ onYear }: { onYear?: (year: number) => void }) {
             <div
               aria-hidden
               data-flash={flash}
-              className="pointer-events-none fixed inset-0"
+              className="fixed inset-0"
               style={{ zIndex: 80, background: flash === "pink" ? "#ff4fa3" : "#ffffff" }}
             />,
             document.body,
