@@ -426,11 +426,38 @@
   }
 }
 
+.fire-flash {
+  background-color: rgb(255 79 163 / 0);
+  animation: fire-flash 1.6s linear forwards;
+}
+
+@keyframes fire-flash {
+  0% {
+    background-color: rgb(255 79 163 / 0);
+    animation-timing-function: ease-in;
+  }
+  30% {
+    background-color: #ff4fa3;
+    animation-timing-function: ease-in;
+  }
+  52% {
+    background-color: #ffffff;
+  }
+  74% {
+    background-color: #ffffff;
+    animation-timing-function: ease-out;
+  }
+  100% {
+    background-color: rgb(255 255 255 / 0);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .pixel-lane,
   .pixel-window,
   .pixel-mote,
-  .pixel-antenna i {
+  .pixel-antenna i,
+  .fire-flash {
     animation: none;
   }
 }

@@ -16,7 +16,7 @@ export function WorldShell({ onYear }: { onYear?: (year: number) => void }) {
   const [lensOpen, setLensOpen] = useState(false)
   const [personId, setPersonId] = useState<PersonId | null>(null)
   const [lupineOpen, setLupineOpen] = useState(false)
-  const [flash, setFlash] = useState<"pink" | "white" | null>(null)
+  const [flash, setFlash] = useState(false)
   const flashTimers = useRef<number[]>([])
   const active = moments.find((moment) => moment.id === activeId) ?? moments[0]
   const scene: GroundScene =
@@ -44,17 +44,14 @@ export function WorldShell({ onYear }: { onYear?: (year: number) => void }) {
     flashTimers.current.forEach((timer) => window.clearTimeout(timer))
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches
     if (reduce) {
-      setFlash(null)
+      setFlash(false)
       selectMoment("guerra")
       return
     }
-    setFlash("pink")
+    setFlash(true)
     flashTimers.current = [
-      window.setTimeout(() => setFlash("white"), 220),
-      window.setTimeout(() => {
-        selectMoment("guerra")
-        setFlash(null)
-      }, 520),
+      window.setTimeout(() => selectMoment("guerra"), 1184),
+      window.setTimeout(() => setFlash(false), 1600),
     ]
   }
 
@@ -202,12 +199,7 @@ export function WorldShell({ onYear }: { onYear?: (year: number) => void }) {
       </p>
       {flash
         ? createPortal(
-            <div
-              aria-hidden
-              data-flash={flash}
-              className="fixed inset-0"
-              style={{ zIndex: 80, background: flash === "pink" ? "#ff4fa3" : "#ffffff" }}
-            />,
+            <div aria-hidden data-flash="play" className="fire-flash fixed inset-0" style={{ zIndex: 80 }} />,
             document.body,
           )
         : null}
