@@ -179,11 +179,10 @@
 }
 
 .pixel-shell {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
   background-color: #2a0b55;
-  background-image:
-    linear-gradient(#4d8cff 2px, transparent 2px),
-    linear-gradient(90deg, #c45cff 2px, transparent 2px);
-  background-size: 16px 16px;
   color: #f6edff;
   -webkit-font-smoothing: none;
   -moz-osx-font-smoothing: unset;
@@ -252,9 +251,141 @@
 }
 
 .pixel-veil {
-  background-color: rgb(42 8 90 / 48%);
-  background-image:
-    linear-gradient(#4d8cff 2px, transparent 2px),
-    linear-gradient(90deg, #c45cff 2px, transparent 2px);
-  background-size: 12px 12px;
+  background-color: rgb(22 4 46 / 55%);
+}
+
+.pixel-shell > :not(.pixel-sky) {
+  position: relative;
+  z-index: 1;
+}
+
+.pixel-sky {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.pixel-mote {
+  position: absolute;
+  animation: pixel-blink 2.8s steps(2, end) infinite;
+}
+
+.pixel-lane {
+  position: absolute;
+  left: 0;
+  display: flex;
+  width: 200%;
+  animation: pixel-drift 32s steps(40, end) infinite;
+}
+
+.pixel-lane-set {
+  display: flex;
+  width: 50%;
+  justify-content: space-around;
+  align-items: flex-start;
+}
+
+.pixel-cloud {
+  position: relative;
+  width: 64px;
+  height: 32px;
+  flex: none;
+}
+
+.pixel-cloud i,
+.pixel-window,
+.pixel-antenna i {
+  position: absolute;
+  display: block;
+  width: 8px;
+  height: 8px;
+}
+
+.pixel-skyline {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 0 12px;
+}
+
+.pixel-build {
+  position: relative;
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  align-items: center;
+}
+
+.pixel-slab {
+  position: relative;
+  flex: none;
+}
+
+.pixel-roof {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 4px;
+}
+
+.pixel-window {
+  width: 4px;
+  height: 4px;
+  animation: pixel-blink 2.6s steps(2, end) infinite;
+}
+
+.pixel-antenna {
+  position: absolute;
+  top: -14px;
+  left: 50%;
+  width: 2px;
+  height: 14px;
+  margin-left: -1px;
+  background: #3a1468;
+}
+
+.pixel-antenna i {
+  top: -4px;
+  left: 0;
+  width: 4px;
+  height: 4px;
+  margin-left: -1px;
+  animation: pixel-blink 1.4s steps(2, end) infinite;
+}
+
+@keyframes pixel-drift {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes pixel-blink {
+  0%,
+  45% {
+    opacity: 1;
+  }
+  55%,
+  100% {
+    opacity: 0.15;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pixel-lane,
+  .pixel-window,
+  .pixel-mote,
+  .pixel-antenna i {
+    animation: none;
+  }
 }
