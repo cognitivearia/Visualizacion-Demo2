@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { IsometricGround, type GroundScene, type SoilReading } from "@/components/mundo/isometric-ground"
-import { populationTrend, regionKeys } from "@/data/world"
+import { occupation3030, populationTrend, regionKeys } from "@/data/world"
 import { firstBuildings, moments, soilPalette, townspeople, type Moment, type MomentId, type Person, type PersonId } from "@/data/moments"
 import { formatPeople } from "@/lib/format"
 import { palette, regionColors } from "@/lib/palette"
@@ -11,38 +11,30 @@ const year2945 = populationTrend.find((row) => row.anio === 2945)
 
 export function WorldShell() {
   const [activeId, setActiveId] = useState<MomentId>("prehistoria")
-  const [viaFire, setViaFire] = useState(false)
   const [reading, setReading] = useState<SoilReading | null>(null)
   const [lensOpen, setLensOpen] = useState(false)
   const [personId, setPersonId] = useState<PersonId | null>(null)
   const [lupineOpen, setLupineOpen] = useState(false)
   const active = moments.find((moment) => moment.id === activeId) ?? moments[0]
   const scene: GroundScene =
-    active.id === "guerra" && viaFire
-      ? "fuego"
-      : active.id === "incertidumbre"
-        ? "incertidumbre"
-        : active.id === "civilizacion"
-          ? "civilizacion"
-          : active.open
-            ? "baldio"
-            : "cerrado"
+    active.id === "guerra"
+      ? "guerra"
+      : active.id === "postguerra"
+        ? "postguerra"
+        : active.id === "incertidumbre"
+          ? "incertidumbre"
+          : active.id === "civilizacion"
+            ? "civilizacion"
+            : active.open
+              ? "baldio"
+              : "cerrado"
   const person = townspeople.find((item) => item.id === personId) ?? null
 
   function selectMoment(id: MomentId) {
     setActiveId(id)
-    setViaFire(false)
     setPersonId(null)
     setLupineOpen(false)
     if (id !== "prehistoria") setLensOpen(false)
-  }
-
-  function enterByFire() {
-    setActiveId("guerra")
-    setViaFire(true)
-    setPersonId(null)
-    setLupineOpen(false)
-    setLensOpen(false)
   }
 
   useEffect(() => {
@@ -115,14 +107,17 @@ export function WorldShell() {
                 ? "Baldío"
                 : scene === "cerrado"
                   ? "Archivo cerrado"
-                  : scene === "fuego"
-                    ? "2999"
-                    : "Ciudad"}
+                  : scene === "guerra"
+                    ? "Guerra"
+                    : scene === "postguerra"
+                      ? "Postguerra"
+                      : "Ciudad"}
             </span>
             {scene === "baldio" ? <span className="pixel-chip">Sin edificios</span> : null}
             {scene === "civilizacion" ? <span className="pixel-chip">Vida actual</span> : null}
             {scene === "incertidumbre" ? <span className="pixel-chip">Lupine al borde</span> : null}
-            {scene === "fuego" ? <span className="pixel-chip">Entrada por FIRE</span> : null}
+            {scene === "guerra" ? <span className="pixel-chip">Láser rosa</span> : null}
+            {scene === "postguerra" ? <span className="pixel-chip">Estado totalitario</span> : null}
           </div>
           <div className="h-[30rem] sm:h-[34rem]">
             <IsometricGround
@@ -157,9 +152,6 @@ export function WorldShell() {
           {scene === "civilizacion" && person ? (
             <PersonFile person={person} onClose={() => setPersonId(null)} />
           ) : null}
-          {scene === "fuego" ? (
-            <p className="pixel-chip pointer-events-none absolute bottom-3 left-3">Llegaste con FIRE</p>
-          ) : null}
         </section>
 
         <MomentBlurb
@@ -169,12 +161,12 @@ export function WorldShell() {
           person={scene === "civilizacion" ? person : null}
           onPickPerson={setPersonId}
           lupineOpen={scene === "incertidumbre" && lupineOpen}
-          onFire={enterByFire}
+          onFire={() => selectMoment("guerra")}
         />
       </div>
 
       <p className="sr-only" aria-live="polite">
-        {lensOpen ? spoken : viaFire ? "Año 2999. Entrada por FIRE." : ""}
+        {lensOpen ? spoken : ""}
       </p>
     </div>
   )
@@ -279,6 +271,43 @@ function Population2945() {
   )
 }
 
+const shareColor: Record<string, string> = {
+  Oroszlan: palette.oroszlan,
+  Polip: palette.polip,
+  Otros: palette.otros,
+}
+
+function TerritorySplit() {
+  return (
+    <div className="mt-5">
+      <p className="text-[10px] tracking-[0.1em] uppercase" style={{ color: palette.oroszlan }}>
+        Archivo · división territorial
+      </p>
+      <p className="mt-1 text-[11px] leading-relaxed" style={{ color: "#d7c4ff" }}>
+        Cifras del portal: Oroszlan, Polip y otros.
+      </p>
+      <div className="mt-3 flex h-3 bg-[#120228]">
+        {occupation3030.map((row) => (
+          <div key={row.nacion} style={{ width: `${row.ocupacion}%`, background: shareColor[row.nacion] ?? palette.mist }} />
+        ))}
+      </div>
+      <ul className="mt-3 space-y-2">
+        {occupation3030.map((row) => (
+          <li key={row.nacion} className="flex items-center justify-between text-xs">
+            <span className="flex items-center gap-2">
+              <span className="size-2.5 border border-[#1a0a06]" style={{ background: shareColor[row.nacion] ?? palette.mist }} />
+              {row.nacion}
+            </span>
+            <span style={{ color: "#d7c4ff" }}>
+              {row.ocupacion.toLocaleString("es-ES", { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%
+            </span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
+}
+
 function MomentBlurb({
   moment,
   scene,
@@ -305,13 +334,9 @@ function MomentBlurb({
       </p>
       <h1 className="mt-2 text-2xl sm:text-3xl">{moment.title}</h1>
       <p className="mt-3 text-xs leading-relaxed sm:text-sm" style={{ color: "#f6edff" }}>
-        {scene === "fuego"
-          ? "FIRE abrió esta fecha. No es una persona ni un robot: es el paso de 2945 a 2999. La guerra todavía no está dibujada."
-          : moment.blurb}
+        {moment.blurb}
       </p>
-      {scene === "fuego" ? null : (
-        <p className="mt-3 text-xs leading-relaxed sm:text-sm">{moment.note}</p>
-      )}
+      <p className="mt-3 text-xs leading-relaxed sm:text-sm">{moment.note}</p>
 
       {scene === "civilizacion" ? (
         <>
@@ -414,7 +439,9 @@ function MomentBlurb({
             </ul>
           </div>
         </>
-      ) : scene === "fuego" ? null : (
+      ) : scene === "guerra" ? (
+        <TerritorySplit />
+      ) : scene === "postguerra" ? null : (
         <p className="mt-6 text-[10px] tracking-[0.12em] uppercase" style={{ color: palette.polip }}>
           Próximo
         </p>

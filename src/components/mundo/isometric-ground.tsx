@@ -44,7 +44,12 @@ const personPaint: Record<PersonTint, { top: string; left: string; right: string
   ochre: { top: "#c9a227", left: "#7a5b12", right: "#e6c35c", head: "#f3d5b5" },
 }
 
-export type GroundScene = "baldio" | "civilizacion" | "incertidumbre" | "fuego" | "cerrado"
+const ASH = { top: "#c8c2d0", left: "#6a6574", right: "#9b95a6" }
+const RUIN = { top: "#4a3028", left: "#2a1814", right: "#6b4034" }
+const UNIFORM = { top: "#ece8f2", left: "#8a8496", right: "#c8c2d2", head: "#f6f3fa" }
+const LASER = "#ff4fa3"
+
+export type GroundScene = "baldio" | "civilizacion" | "incertidumbre" | "guerra" | "postguerra" | "cerrado"
 
 const PIXEL_CIRCLE =
   "polygon(18% 0, 82% 0, 100% 18%, 100% 82%, 82% 100%, 18% 100%, 0 82%, 0 18%)"
@@ -95,10 +100,15 @@ function hash(col: number, row: number) {
   return n - Math.floor(n)
 }
 
-function groundColor(col: number, row: number) {
+function groundColor(col: number, row: number, mode: "earth" | "war" | "mono") {
   const n = hash(col, row)
-  if (n > 0.9) return "#6fbf3a"
-  if (n > 0.78) return "#8ed14a"
+  if (mode === "mono") {
+    const grays = ["#d4cedc", "#b7b0c2", "#8f879c", "#6e687a", "#c3bccc"]
+    return grays[Math.floor(n * grays.length)]
+  }
+  if (n > 0.9) return mode === "war" ? "#6a3040" : "#6fbf3a"
+  if (n > 0.78) return mode === "war" ? "#8a4038" : "#8ed14a"
+  if (mode === "war" && n > 0.55) return "#5c2a28"
   return EARTH[Math.floor(n * EARTH.length)]
 }
 
@@ -153,6 +163,7 @@ function PixelFigure({
   tint,
   selected,
   onPick,
+  interactive = true,
 }: {
   cx: number
   cy: number
@@ -161,27 +172,31 @@ function PixelFigure({
   tint: PersonTint
   selected: boolean
   onPick: (id: PersonId) => void
+  interactive?: boolean
 }) {
   const hw = 7
   const hh = 4
   const body = 18
   const topY = cy - body
   const headY = topY - 11
-  const paint = personPaint[tint]
+  const paint = interactive ? personPaint[tint] : UNIFORM
   const edge = selected ? "#f6edff" : "#1a0a06"
 
   return (
     <g
-      role="button"
-      tabIndex={0}
-      aria-label={`${name}. Abrir ficha`}
-      aria-pressed={selected}
-      className="cursor-pointer outline-none"
+      role={interactive ? "button" : undefined}
+      tabIndex={interactive ? 0 : undefined}
+      aria-label={interactive ? `${name}. Abrir ficha` : undefined}
+      aria-pressed={interactive ? selected : undefined}
+      className={interactive ? "cursor-pointer outline-none" : undefined}
+      pointerEvents={interactive ? undefined : "none"}
       onClick={(event) => {
+        if (!interactive) return
         event.stopPropagation()
         onPick(id)
       }}
       onKeyDown={(event) => {
+        if (!interactive) return
         if (event.key !== "Enter" && event.key !== " ") return
         event.preventDefault()
         onPick(id)
@@ -345,20 +360,26 @@ export function IsometricGround({
   }
 
   const soil = scene === "baldio"
-  const city = scene === "civilizacion" || scene === "incertidumbre" || scene === "fuego"
+  const city = scene === "civilizacion" || scene === "incertidumbre" || scene === "guerra" || scene === "postguerra"
   const crowd = scene === "civilizacion"
+  const uniform = scene === "postguerra"
+  const war = scene === "guerra"
+  const mono = scene === "postguerra"
   const camps = scene === "baldio" || scene === "cerrado"
   const selectedKey = soil && reading ? `${reading.col}-${reading.row}` : null
   const extraSky = city ? 44 : 0
   const sceneView = `${minX} ${minY - extraSky} ${maxX - minX} ${maxY - minY + extraSky}`
+  const groundMode = mono ? "mono" : war ? "war" : "earth"
   const sceneLabel =
     scene === "civilizacion"
       ? "Ciudad de 2730: edificios y personas de la vida común"
       : scene === "incertidumbre"
         ? "Ciudad de 2945"
-        : scene === "fuego"
-          ? "Ciudad al entrar en 2999"
-          : "Terreno baldío en vista isométrica"
+        : scene === "guerra"
+          ? "Ciudad en guerra: bloques rotos y láser rosa"
+          : scene === "postguerra"
+            ? "Ciudad de 3030 en monocromo, gente uniforme"
+            : "Terreno baldío en vista isométrica"
 
   return (
     <div ref={stageRef} className="relative h-full min-h-[28rem]">
@@ -372,7 +393,7 @@ export function IsometricGround({
         {ordered.map((cell) => {
           const key = `${cell.col}-${cell.row}`
           const selected = selectedKey === key
-          const fill = groundColor(cell.col, cell.row)
+          const fill = groundColor(cell.col, cell.row, groundMode)
           const blocks = camps
             ? colonies.filter((colony) => colony.col === cell.col && colony.row === cell.row)
             : []
@@ -388,7 +409,7 @@ export function IsometricGround({
               <polygon
                 points={diamond(cell.x, cell.y, HALF_W, HALF_H)}
                 fill={fill}
-                stroke={selected ? palette.oroszlan : hover === key ? "#fff4c2" : "#2a1208"}
+                stroke={selected ? palette.oroszlan : hover === key ? "#fff4c2" : mono ? "#3a3644" : "#2a1208"}
                 strokeWidth={selected ? 3 : 2}
                 className={soil ? "cursor-pointer outline-none" : undefined}
                 role={soil ? "button" : undefined}
@@ -418,15 +439,19 @@ export function IsometricGround({
                 />
               ))}
               {stacks.map((stack) => (
-                <BlockStack
-                  key={`edificio-${stack.col}-${stack.row}`}
-                  cx={cell.x}
-                  cy={cell.y}
-                  levels={stack.levels}
-                  hw={18}
-                  paint={STONE}
-                  top={stack.roof ? ROOF[stack.roof] : undefined}
-                />
+                <g key={`edificio-${stack.col}-${stack.row}`}>
+                  <BlockStack
+                    cx={cell.x}
+                    cy={cell.y}
+                    levels={war ? Math.max(1, stack.levels - 1) : stack.levels}
+                    hw={18}
+                    paint={mono ? ASH : war ? RUIN : STONE}
+                    top={mono || war ? undefined : stack.roof ? ROOF[stack.roof] : undefined}
+                  />
+                  {war ? (
+                    <BlockStack cx={cell.x + 16} cy={cell.y + 8} levels={1} hw={10} paint={RUIN} />
+                  ) : null}
+                </g>
               ))}
               {people.map((person) => (
                 <PixelFigure
@@ -440,6 +465,23 @@ export function IsometricGround({
                   onPick={onPickPerson}
                 />
               ))}
+              {uniform
+                ? townspeople
+                    .filter((person) => person.col === cell.col && person.row === cell.row)
+                    .map((person) => (
+                      <PixelFigure
+                        key={person.id}
+                        cx={cell.x}
+                        cy={cell.y}
+                        id={person.id}
+                        name={person.name}
+                        tint={person.tint}
+                        selected={false}
+                        onPick={onPickPerson}
+                        interactive={false}
+                      />
+                    ))
+                : null}
               {selected ? (
                 <g pointerEvents="none" stroke={palette.oroszlan} strokeWidth="3">
                   <line x1={cell.x - 8} y1={cell.y} x2={cell.x + 8} y2={cell.y} />
@@ -449,6 +491,22 @@ export function IsometricGround({
             </g>
           )
         })}
+        {war ? (
+          <g pointerEvents="none">
+            <polyline
+              points="-150,70 -40,90 40,70 170,130"
+              fill="none"
+              stroke={LASER}
+              strokeWidth="6"
+            />
+            <polyline
+              points="-150,70 -40,90 40,70 170,130"
+              fill="none"
+              stroke="#ffd6ea"
+              strokeWidth="2"
+            />
+          </g>
+        ) : null}
       </svg>
 
       {soil && lensOpen && reading ? (
