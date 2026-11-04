@@ -1,7 +1,6 @@
 import type { Metadata } from "next"
 import { Silkscreen } from "next/font/google"
-import { PixelSky } from "@/components/mundo/pixel-sky"
-import { WorldShell } from "@/components/mundo/world-shell"
+import { MundoExperience } from "@/components/mundo/mundo-experience"
 
 const pixel = Silkscreen({
   subsets: ["latin"],
@@ -17,10 +16,7 @@ export const metadata: Metadata = {
 export default function MundoPage() {
   return (
     <div className={`${pixel.className} pixel-shell flex flex-1 flex-col`}>
-      <PixelSky />
-      <div className="mx-auto flex w-full max-w-6xl flex-1 flex-col px-4 py-6 sm:px-6 sm:py-8">
-        <WorldShell />
-      </div>
+      <MundoExperience />
     </div>
   )
 }

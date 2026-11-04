@@ -1,6 +1,7 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
+import { createPortal } from "react-dom"
 import { IsometricGround, type GroundScene, type SoilReading } from "@/components/mundo/isometric-ground"
 import { occupation3030, populationTrend, regionKeys } from "@/data/world"
 import { firstBuildings, moments, soilPalette, townspeople, type Moment, type MomentId, type Person, type PersonId } from "@/data/moments"
@@ -9,12 +10,14 @@ import { palette, regionColors } from "@/lib/palette"
 
 const year2945 = populationTrend.find((row) => row.anio === 2945)
 
-export function WorldShell() {
+export function WorldShell({ onYear }: { onYear?: (year: number) => void }) {
   const [activeId, setActiveId] = useState<MomentId>("prehistoria")
   const [reading, setReading] = useState<SoilReading | null>(null)
   const [lensOpen, setLensOpen] = useState(false)
   const [personId, setPersonId] = useState<PersonId | null>(null)
   const [lupineOpen, setLupineOpen] = useState(false)
+  const [flash, setFlash] = useState<"pink" | "white" | null>(null)
+  const flashTimers = useRef<number[]>([])
   const active = moments.find((moment) => moment.id === activeId) ?? moments[0]
   const scene: GroundScene =
     active.id === "guerra"
@@ -36,6 +39,35 @@ export function WorldShell() {
     setLupineOpen(false)
     if (id !== "prehistoria") setLensOpen(false)
   }
+
+  function playFire() {
+    flashTimers.current.forEach((timer) => window.clearTimeout(timer))
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    if (reduce) {
+      setFlash(null)
+      selectMoment("guerra")
+      return
+    }
+    setFlash("pink")
+    flashTimers.current = [
+      window.setTimeout(() => setFlash("white"), 220),
+      window.setTimeout(() => {
+        selectMoment("guerra")
+        setFlash(null)
+      }, 520),
+    ]
+  }
+
+  useEffect(() => {
+    onYear?.(active.year)
+  }, [active.year, onYear])
+
+  useEffect(() => {
+    const timers = flashTimers
+    return () => {
+      timers.current.forEach((timer) => window.clearTimeout(timer))
+    }
+  }, [])
 
   useEffect(() => {
     if (!person && !lupineOpen) return
@@ -116,7 +148,7 @@ export function WorldShell() {
             {scene === "baldio" ? <span className="pixel-chip">Sin edificios</span> : null}
             {scene === "civilizacion" ? <span className="pixel-chip">Vida actual</span> : null}
             {scene === "incertidumbre" ? <span className="pixel-chip">Lupine al borde</span> : null}
-            {scene === "guerra" ? <span className="pixel-chip">Láser rosa</span> : null}
+            {scene === "guerra" ? <span className="pixel-chip">Bloques rotos</span> : null}
             {scene === "postguerra" ? <span className="pixel-chip">Estado totalitario</span> : null}
           </div>
           <div className="h-[30rem] sm:h-[34rem]">
@@ -161,13 +193,24 @@ export function WorldShell() {
           person={scene === "civilizacion" ? person : null}
           onPickPerson={setPersonId}
           lupineOpen={scene === "incertidumbre" && lupineOpen}
-          onFire={() => selectMoment("guerra")}
+          onFire={playFire}
         />
       </div>
 
       <p className="sr-only" aria-live="polite">
         {lensOpen ? spoken : ""}
       </p>
+      {flash
+        ? createPortal(
+            <div
+              aria-hidden
+              data-flash={flash}
+              className="fixed inset-0"
+              style={{ zIndex: 80, background: flash === "pink" ? "#ff4fa3" : "#ffffff" }}
+            />,
+            document.body,
+          )
+        : null}
     </div>
   )
 }
