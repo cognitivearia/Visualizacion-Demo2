@@ -39,78 +39,125 @@ export const moments: Moment[] = [
     kicker: "Momento 02",
     title: "Primera civilización",
     blurb:
-      "El baldío gana las primeras construcciones, todavía en bloques. El poder es uno: esta civilización ya es un estado totalitario.",
-    note: "Pulsa a Lupine o a Fire. Cada ficha abre una tarjeta corta, no un momento nuevo.",
+      "Entre los edificios hay gente de la vida común. La tecnología es la de nuestra vida actual: casas, calles, oficios. No es un estado totalitario.",
+    note: "Pulsa a una persona. Se abre una ficha corta, como un documento: edad, género y familia.",
   },
   {
     id: "incertidumbre",
     index: 3,
     year: 2945,
     label: "Incertidumbre política",
-    open: false,
+    open: true,
     kicker: "Momento 03",
     title: "Incertidumbre política",
-    blurb: "La disputa por el territorio se abre en un corte posterior.",
-    note: "Este momento viene después. 2568 y 2730 ya se pueden explorar.",
+    blurb:
+      "La ciudad sigue en pie y el siglo se llena. La política se vuelve incierta. Lupine no es un edificio: está al costado, fuera del mapa, y señala hacia la ciudad.",
+    note: "Pulsa a Lupine. La nota, las cifras y el botón FIRE aparecen al lado.",
   },
   {
     id: "guerra",
     index: 4,
     year: 2999,
     label: "Guerra",
-    open: false,
+    open: true,
     kicker: "Momento 04",
     title: "Guerra",
-    blurb: "El registro del conflicto todavía no está dibujado.",
-    note: "Este momento viene después. 2568 y 2730 ya se pueden explorar.",
+    blurb: "La ciudad entra en caos. Los bloques se rompen y un láser rosa cruza las calles.",
+    note: "No hay fichas de persona. La división del territorio, abajo, sale del portal.",
   },
   {
     id: "postguerra",
     index: 5,
     year: 3030,
     label: "Postguerra",
-    open: false,
+    open: true,
     kicker: "Momento 05",
     title: "Postguerra",
-    blurb: "El mundo partido del año 3030 se consulta más adelante.",
-    note: "Este momento viene después. 2568 y 2730 ya se pueden explorar.",
+    blurb:
+      "La misma ciudad sigue en bloques, ya en monocromo. La gente es uniforme y nadie tiene ficha. El estado es totalitario: esta es la situación actual.",
+    note: "Púrpura y azul neón se quedan en la cáscara. Dentro, el color se apagó.",
   },
 ]
 
-export type FigureId = "lupine" | "fire"
+export type PersonId = "nora" | "marek" | "ilsa" | "peter" | "amina" | "tomas"
 
-export type Figure = {
-  id: FigureId
+export type PersonTint = "denim" | "red" | "green" | "ochre"
+
+export type Person = {
+  id: PersonId
   name: string
-  faction: string
-  color: string
+  age: number
+  gender: string
+  family: string
   col: number
   row: number
-  line: string
+  tint: PersonTint
 }
 
-export const figures: Figure[] = [
+export const townspeople: Person[] = [
   {
-    id: "lupine",
-    name: "Lupine",
-    faction: "Oroszlan",
-    color: "#4d8cff",
+    id: "nora",
+    name: "Nóra Varga",
+    age: 34,
+    gender: "Mujer",
+    family: "Vive con su pareja y una hija.",
     col: 3,
-    row: 3,
-    line: "Habla por el azul. En 2730 ya no hay colonia: hay un solo poder, y Lupine lo nombra.",
+    row: 2,
+    tint: "denim",
   },
   {
-    id: "fire",
-    name: "Fire",
-    faction: "Polip",
-    color: "#c45cff",
+    id: "marek",
+    name: "Marek Holm",
+    age: 41,
+    gender: "Hombre",
+    family: "Vive con su madre.",
+    col: 2,
+    row: 3,
+    tint: "ochre",
+  },
+  {
+    id: "ilsa",
+    name: "Ilsa Berg",
+    age: 19,
+    gender: "Mujer",
+    family: "Vive sola. Los domingos ve a su hermano.",
     col: 5,
+    row: 3,
+    tint: "red",
+  },
+  {
+    id: "peter",
+    name: "Péter Nagy",
+    age: 67,
+    gender: "Hombre",
+    family: "Vive con su esposa.",
+    col: 6,
     row: 4,
-    line: "Habla por el púrpura. Fire no discute el mando: lo enciende. El estado es uno.",
+    tint: "green",
+  },
+  {
+    id: "amina",
+    name: "Amina Kessler",
+    age: 28,
+    gender: "Mujer",
+    family: "Comparte piso con dos compañeros.",
+    col: 3,
+    row: 4,
+    tint: "denim",
+  },
+  {
+    id: "tomas",
+    name: "Tomás Ried",
+    age: 8,
+    gender: "Niño",
+    family: "Vive con su padre y su hermana.",
+    col: 6,
+    row: 1,
+    tint: "ochre",
   },
 ]
 
-export type BuildingRoof = "blue" | "purple"
+export type BuildingRoof = "clay" | "slate"
 
 export type BlockBuilding = {
   col: number
@@ -120,13 +167,13 @@ export type BlockBuilding = {
 }
 
 export const firstBuildings: BlockBuilding[] = [
-  { col: 5, row: 1, levels: 4, roof: "blue" },
-  { col: 4, row: 2, levels: 3 },
+  { col: 5, row: 1, levels: 4, roof: "slate" },
+  { col: 4, row: 2, levels: 3, roof: "clay" },
   { col: 1, row: 2, levels: 2 },
-  { col: 0, row: 3, levels: 3, roof: "purple" },
-  { col: 7, row: 2, levels: 2 },
+  { col: 0, row: 3, levels: 3, roof: "slate" },
+  { col: 7, row: 2, levels: 2, roof: "clay" },
   { col: 1, row: 4, levels: 2 },
-  { col: 7, row: 4, levels: 3 },
+  { col: 7, row: 4, levels: 3, roof: "slate" },
 ]
 
 export type SoilLayerId = "suelo" | "roca" | "agua" | "restos"
