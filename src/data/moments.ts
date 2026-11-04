@@ -62,7 +62,7 @@ export const moments: Moment[] = [
     open: true,
     kicker: "Momento 04",
     title: "Guerra",
-    blurb: "La ciudad entra en caos. Los bloques se rompen y un láser rosa cruza las calles.",
+    blurb: "La ciudad entra en caos. Los bloques se rompen.",
     note: "No hay fichas de persona. La división del territorio, abajo, sale del portal.",
   },
   {

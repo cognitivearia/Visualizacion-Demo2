@@ -104,6 +104,53 @@ const lanes = [
   { top: "76%", duration: "40s", shapes: [2, 0, 1, 2, 0] },
 ]
 
+type SkyMode = "desert" | "city" | "rise" | "ruin" | "mono"
+
+function skyMode(year: number): SkyMode {
+  if (year <= 2568) return "desert"
+  if (year <= 2730) return "city"
+  if (year <= 2945) return "rise"
+  if (year <= 2999) return "ruin"
+  return "mono"
+}
+
+function tone(color: string, mode: SkyMode) {
+  if (mode === "mono") {
+    if (color === BLUE || color === PURPLE) return "#d4d0d8"
+    return "#6e6a76"
+  }
+  if (mode === "desert") {
+    if (color === BLUE) return "#8fbf45"
+    if (color === PURPLE) return "#d2b56a"
+    return "#4e7a30"
+  }
+  if (mode === "ruin") return "#3a2430"
+  return color
+}
+
+const rise = Array.from({ length: 26 }, (_, index) => {
+  const roll = unit(index + 7)
+  const width = [14, 22, 36, 18, 58, 28, 12, 44, 20, 70, 16, 32][index % 12]
+  return {
+    width,
+    height: Math.round(40 + roll * 440),
+    cap: roll > 0.42 ? Math.max(10, Math.round(width * 0.66)) : 0,
+    capH: 18 + Math.round(unit(index + 19) * 54),
+    antenna: roll > 0.74,
+    roof: roll > 0.58 ? (roll > 0.8 ? PURPLE : BLUE) : "",
+  }
+})
+
+const plants = Array.from({ length: 18 }, (_, index) => {
+  const roll = unit(index + 5)
+  const kind = roll > 0.62 ? "cactus" : roll > 0.28 ? "bush" : "tuft"
+  return {
+    kind,
+    height: kind === "cactus" ? 36 + Math.round(unit(index + 13) * 70) : 14 + Math.round(roll * 28),
+    arm: unit(index + 2) > 0.45,
+  }
+})
+
 const motes = Array.from({ length: 22 }, (_, index) => {
   const roll = unit(index + 40)
   return {
@@ -116,16 +163,19 @@ const motes = Array.from({ length: 22 }, (_, index) => {
   }
 })
 
-function Cloud({ shape }: { shape: number }) {
+function Cloud({ shape, mode }: { shape: number; mode: SkyMode }) {
   return (
     <span className="pixel-cloud">
-      {puffs[shape].map(([x, y, color], index) => (
-        <i
-          key={`${shape}-${x}-${y}-${index}`}
-          className={color === BLUE || color === PURPLE ? "pixel-window" : undefined}
-          style={{ left: x, top: y, background: color }}
-        />
-      ))}
+      {puffs[shape].map(([x, y, color], index) => {
+        const paint = tone(color, mode)
+        return (
+          <i
+            key={`${shape}-${x}-${y}-${index}`}
+            className={color === BLUE || color === PURPLE ? "pixel-window" : undefined}
+            style={{ left: x, top: y, background: paint }}
+          />
+        )
+      })}
     </span>
   )
 }
@@ -145,9 +195,110 @@ function Windows({ spots }: { spots: { x: number; y: number; color: string; dela
   ))
 }
 
-export function PixelSky() {
+function DesertScrub() {
   return (
-    <div className="pixel-sky" aria-hidden>
+    <div className="pixel-skyline">
+      {plants.map((plant, index) =>
+        plant.kind === "cactus" ? (
+          <span key={index} className="pixel-cactus" style={{ height: plant.height }}>
+            {plant.arm ? <i className="pixel-cactus-arm" /> : null}
+          </span>
+        ) : (
+          <span
+            key={index}
+            className={plant.kind === "bush" ? "pixel-bush" : "pixel-tuft"}
+            style={{ height: plant.height, width: plant.kind === "bush" ? 28 : 10 }}
+          />
+        ),
+      )}
+    </div>
+  )
+}
+
+function SkyBuildings({ mode }: { mode: Exclude<SkyMode, "desert"> }) {
+  const mono = mode === "mono"
+  const ruined = mode === "ruin"
+  const risen = mode === "rise" || ruined
+  const bodyColor = mono ? "#3a3a42" : ruined ? "#241016" : NIGHT
+  const capColor = mono ? "#5a5862" : ruined ? "#3a201c" : NIGHT_LIT
+  const columns = risen
+    ? rise.map((block, index) => {
+        const left = ruined ? Math.max(18, Math.round(block.height * (0.2 + unit(index + 3) * 0.48))) : block.height
+        return {
+          width: block.width,
+          height: left,
+          cap: block.cap,
+          capH: block.capH,
+          antenna: block.antenna && !ruined,
+          antennaColor: BLUE,
+          roof: ruined || mono ? "" : block.roof,
+        }
+      })
+    : buildings.map((building) => ({
+        width: building.body[0],
+        height: building.body[1],
+        cap: building.cap ? building.cap[0] : 0,
+        capH: building.cap ? building.cap[1] : 0,
+        antenna: Boolean(building.antenna) && !mono,
+        antennaColor: building.antenna ?? BLUE,
+        roof: mono ? "" : (building.roof ?? ""),
+      }))
+
+  return (
+    <div className="pixel-skyline">
+      {columns.map((block, index) => {
+        const paintLight = (color: string) => (ruined ? "#6a3040" : mono ? "#d4d0d8" : color)
+        const bodyLights = lights(block.width, block.height, index + 2).map((spot) => ({
+          ...spot,
+          color: paintLight(spot.color),
+        }))
+        const capLights = block.cap
+          ? lights(block.cap, block.capH, index + 50).map((spot) => ({
+              ...spot,
+              color: paintLight(spot.color),
+            }))
+          : []
+        const antennaColor = block.antennaColor
+        return (
+          <span key={index} className="pixel-build">
+            {block.antenna && !ruined ? (
+              <span className="pixel-antenna">
+                <i style={{ background: mono ? "#d4d0d8" : antennaColor, animationDelay: `${index * 0.2}s` }} />
+              </span>
+            ) : null}
+            {block.cap ? (
+              <span
+                className="pixel-slab"
+                style={{
+                  width: block.cap,
+                  height: ruined ? Math.max(8, Math.round(block.capH * 0.45)) : block.capH,
+                  marginLeft: ruined ? 8 : 0,
+                  background: capColor,
+                }}
+              >
+                {block.roof ? <i className="pixel-roof" style={{ background: mono ? "#8e8a96" : block.roof }} /> : null}
+                <Windows spots={capLights} />
+              </span>
+            ) : null}
+            <span className="pixel-slab" style={{ width: block.width, height: block.height, background: bodyColor }}>
+              {!block.cap && block.roof ? (
+                <i className="pixel-roof" style={{ background: mono ? "#8e8a96" : block.roof }} />
+              ) : null}
+              <Windows spots={bodyLights} />
+              {ruined ? <i className="pixel-rubble" /> : null}
+            </span>
+          </span>
+        )
+      })}
+    </div>
+  )
+}
+
+export function PixelSky({ year }: { year: number }) {
+  const mode = skyMode(year)
+
+  return (
+    <div className={mode === "mono" ? "pixel-sky pixel-sky-mono" : "pixel-sky"} data-sky={mode} aria-hidden>
       {motes.map((mote) => (
         <span
           key={`${mote.left}-${mote.top}`}
@@ -157,7 +308,7 @@ export function PixelSky() {
             top: mote.top,
             width: mote.size,
             height: mote.size,
-            background: mote.color,
+            background: tone(mote.color, mode),
             animationDelay: mote.delay,
             animationDuration: mote.duration,
           }}
@@ -168,38 +319,13 @@ export function PixelSky() {
           {[0, 1].map((copy) => (
             <div key={copy} className="pixel-lane-set">
               {lane.shapes.map((shape, index) => (
-                <Cloud key={`${copy}-${index}`} shape={shape} />
+                <Cloud key={`${copy}-${index}`} shape={shape} mode={mode} />
               ))}
             </div>
           ))}
         </div>
       ))}
-      <div className="pixel-skyline">
-        {buildings.map((building, index) => (
-          <span key={index} className="pixel-build">
-            {building.antenna ? (
-              <span className="pixel-antenna">
-                <i style={{ background: building.antenna, animationDelay: `${index * 0.2}s` }} />
-              </span>
-            ) : null}
-            {building.cap ? (
-              <span
-                className="pixel-slab"
-                style={{ width: building.cap[0], height: building.cap[1], background: NIGHT_LIT }}
-              >
-                {building.roof ? <i className="pixel-roof" style={{ background: building.roof }} /> : null}
-                <Windows spots={building.capLights} />
-              </span>
-            ) : null}
-            <span className="pixel-slab" style={{ width: building.body[0], height: building.body[1], background: NIGHT }}>
-              {!building.cap && building.roof ? (
-                <i className="pixel-roof" style={{ background: building.roof }} />
-              ) : null}
-              <Windows spots={building.bodyLights} />
-            </span>
-          </span>
-        ))}
-      </div>
+      {mode === "desert" ? <DesertScrub /> : <SkyBuildings mode={mode} />}
     </div>
   )
 }

@@ -47,7 +47,6 @@ const personPaint: Record<PersonTint, { top: string; left: string; right: string
 const ASH = { top: "#c8c2d0", left: "#6a6574", right: "#9b95a6" }
 const RUIN = { top: "#4a3028", left: "#2a1814", right: "#6b4034" }
 const UNIFORM = { top: "#ece8f2", left: "#8a8496", right: "#c8c2d2", head: "#f6f3fa" }
-const LASER = "#ff4fa3"
 
 export type GroundScene = "baldio" | "civilizacion" | "incertidumbre" | "guerra" | "postguerra" | "cerrado"
 
@@ -491,22 +490,6 @@ export function IsometricGround({
             </g>
           )
         })}
-        {war ? (
-          <g pointerEvents="none">
-            <polyline
-              points="-150,70 -40,90 40,70 170,130"
-              fill="none"
-              stroke={LASER}
-              strokeWidth="6"
-            />
-            <polyline
-              points="-150,70 -40,90 40,70 170,130"
-              fill="none"
-              stroke="#ffd6ea"
-              strokeWidth="2"
-            />
-          </g>
-        ) : null}
       </svg>
 
       {soil && lensOpen && reading ? (

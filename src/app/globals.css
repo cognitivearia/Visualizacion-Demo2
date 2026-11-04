@@ -267,6 +267,51 @@
   pointer-events: none;
 }
 
+.pixel-sky-mono {
+  background: #141418;
+}
+
+.pixel-cactus {
+  position: relative;
+  width: 10px;
+  flex: none;
+  background: #3f8f2a;
+}
+
+.pixel-cactus-arm {
+  position: absolute;
+  top: 14px;
+  left: 10px;
+  width: 14px;
+  height: 8px;
+  background: #2f6b22;
+  box-shadow: 10px -8px 0 #3f8f2a;
+}
+
+.pixel-bush {
+  flex: none;
+  background: #5c8a32;
+  box-shadow:
+    8px -8px 0 #7da33a,
+    16px 0 0 #3f6b24,
+    4px 8px 0 #c4a35a;
+}
+
+.pixel-tuft {
+  flex: none;
+  background: #c4a35a;
+  box-shadow: 0 -8px 0 #8fbf45;
+}
+
+.pixel-rubble {
+  position: absolute;
+  right: -8px;
+  bottom: 0;
+  width: 14px;
+  height: 8px;
+  background: #1a0c10;
+}
+
 .pixel-mote {
   position: absolute;
   animation: pixel-blink 2.8s steps(2, end) infinite;
