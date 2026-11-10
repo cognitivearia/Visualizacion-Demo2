@@ -27,20 +27,19 @@ Abre [http://localhost:43127](http://localhost:43127).
 
 ## Página web (GitHub Pages)
 
-Origin guarda el código, pero no publica el sitio. La web sale por **GitHub Pages**.
+Dirección: [https://cognitivearia.github.io/Visualizacion-Demo2/](https://cognitivearia.github.io/Visualizacion-Demo2/)
 
-Dirección: [https://cognitvearia.github.io/Visualizacion-Demo/](https://cognitvearia.github.io/Visualizacion-Demo/)
+El repo es `cognitivearia/Visualizacion-Demo2`. Pages publica bajo ese nombre (`/Visualizacion-Demo2`), no bajo `Visualizacion-Demo`.
 
-1. Crea en GitHub un repo vacío llamado `Visualizacion-Demo`.
-2. Desde WSL, en la carpeta del proyecto:
+1. En GitHub: **Settings → Pages → Build and deployment → Source: GitHub Actions**.
+2. Cada push a `main` corre la acción *Deploy to GitHub Pages* y vuelve a publicar.
+3. Para generar el mismo export en local:
 
 ```bash
-git remote add github https://github.com/cognitivemari/Visualizacion-Demo.git
-git push -u github main
+npm run export:pages
 ```
 
-3. En GitHub: **Settings → Pages → Build and deployment → Source: GitHub Actions**.
-4. Espera a que termine la acción *Deploy to GitHub Pages*. Cada push a `main` vuelve a publicar.
+Ese script fija `NEXT_PUBLIC_BASE_PATH=/Visualizacion-Demo2`.
 
 ## Paleta
 

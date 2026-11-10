@@ -1,6 +1,6 @@
 import type { NextConfig } from "next"
 
-const repoBase = "/Visualizacion-Demo"
+const repoBase = "/Visualizacion-Demo2"
 const basePath =
   process.env.NEXT_PUBLIC_BASE_PATH ||
   process.env.PAGES_BASE_PATH ||
