@@ -44,6 +44,17 @@ function hexToRgb(value: string): [number, number, number] | null {
   ]
 }
 
+export const yearWorld = {
+  2568: ["#A16B3D", "#86D2D7", "#1E3006", "#754678", "#547211"],
+  2730: ["#6C8074", "#6E91D8", "#716B83", "#75B4C2", "#660414"],
+  2945: ["#50403E", "#00F3E1", "#795E5B", "#821103", "#115253"],
+} as const
+
+export function worldPalette(year: number) {
+  if (year === 2568 || year === 2730 || year === 2945) return yearWorld[year]
+  return null
+}
+
 export const mapDim = "#2a2438"
 
 export function factionColor(bando: string) {

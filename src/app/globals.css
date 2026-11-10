@@ -184,25 +184,21 @@
   overflow: hidden;
   background-color: #2a0b55;
   color: #f6edff;
-  -webkit-font-smoothing: none;
-  -moz-osx-font-smoothing: unset;
-  font-smooth: never;
-}
-
-.pixel-shell h1,
-.pixel-shell h2,
-.pixel-shell .font-heading,
-.pixel-shell .font-mono {
-  font-family: inherit;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  line-height: 1.25;
+  font-family: var(--font-redaction), ui-sans-serif, system-ui, sans-serif;
+  font-weight: 400;
+  -webkit-font-smoothing: auto;
+  -moz-osx-font-smoothing: auto;
 }
 
 .pixel-shell h1,
 .pixel-shell h2,
 .pixel-shell .font-heading {
-  text-transform: uppercase;
+  font-family: var(--font-bitcount), ui-sans-serif, system-ui, sans-serif;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  line-height: 1.15;
+  text-transform: none;
+  -webkit-font-smoothing: none;
 }
 
 .pixel-shell svg {
@@ -278,6 +274,10 @@
   background: #3f8f2a;
 }
 
+.pixel-sky[data-palette] .pixel-cactus {
+  background: var(--plant);
+}
+
 .pixel-cactus-arm {
   position: absolute;
   top: 14px;
@@ -286,6 +286,11 @@
   height: 8px;
   background: #2f6b22;
   box-shadow: 10px -8px 0 #3f8f2a;
+}
+
+.pixel-sky[data-palette] .pixel-cactus-arm {
+  background: var(--plant-dark);
+  box-shadow: 10px -8px 0 var(--plant);
 }
 
 .pixel-bush {
@@ -297,10 +302,23 @@
     4px 8px 0 #c4a35a;
 }
 
+.pixel-sky[data-palette] .pixel-bush {
+  background: var(--plant);
+  box-shadow:
+    8px -8px 0 var(--plant-sand),
+    16px 0 0 var(--plant-dark),
+    4px 8px 0 var(--plant-mist);
+}
+
 .pixel-tuft {
   flex: none;
   background: #c4a35a;
   box-shadow: 0 -8px 0 #8fbf45;
+}
+
+.pixel-sky[data-palette] .pixel-tuft {
+  background: var(--plant-sand);
+  box-shadow: 0 -8px 0 var(--plant-ink);
 }
 
 .pixel-rubble {
@@ -395,6 +413,10 @@
   height: 14px;
   margin-left: -1px;
   background: #3a1468;
+}
+
+.pixel-sky[data-palette] .pixel-antenna {
+  background: var(--plant-dark);
 }
 
 .pixel-antenna i {
