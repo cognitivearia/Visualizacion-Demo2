@@ -1,3 +1,6 @@
+import type { CSSProperties } from "react"
+import { mixHex, worldPalette } from "@/lib/palette"
+
 const BLUE = "#4d8cff"
 const PURPLE = "#c45cff"
 const CLOUD = "#6b3cbc"
@@ -114,7 +117,14 @@ function skyMode(year: number): SkyMode {
   return "mono"
 }
 
-function tone(color: string, mode: SkyMode) {
+function tone(color: string, mode: SkyMode, colors: readonly string[] | null) {
+  if (colors && (mode === "desert" || mode === "city" || mode === "rise")) {
+    if (color === BLUE) return colors[1]
+    if (color === PURPLE) return colors[3]
+    if (color === CLOUD || color === "#7a48d0") return colors[0]
+    if (color === "#54289a") return colors[4]
+    return colors[2]
+  }
   if (mode === "mono") {
     if (color === BLUE || color === PURPLE) return "#d4d0d8"
     return "#6e6a76"
@@ -126,6 +136,12 @@ function tone(color: string, mode: SkyMode) {
   }
   if (mode === "ruin") return "#3a2430"
   return color
+}
+
+function skyBackground(year: number, colors: readonly string[]) {
+  if (year <= 2568) return colors[2]
+  if (year <= 2730) return mixHex("#000000", colors[0], 0.34)
+  return mixHex("#000000", colors[4], 0.46)
 }
 
 const rise = Array.from({ length: 26 }, (_, index) => {
@@ -163,11 +179,11 @@ const motes = Array.from({ length: 22 }, (_, index) => {
   }
 })
 
-function Cloud({ shape, mode }: { shape: number; mode: SkyMode }) {
+function Cloud({ shape, mode, colors }: { shape: number; mode: SkyMode; colors: readonly string[] | null }) {
   return (
     <span className="pixel-cloud">
       {puffs[shape].map(([x, y, color], index) => {
-        const paint = tone(color, mode)
+        const paint = tone(color, mode, colors)
         return (
           <i
             key={`${shape}-${x}-${y}-${index}`}
@@ -215,12 +231,13 @@ function DesertScrub() {
   )
 }
 
-function SkyBuildings({ mode }: { mode: Exclude<SkyMode, "desert"> }) {
+function SkyBuildings({ mode, colors }: { mode: Exclude<SkyMode, "desert">; colors: readonly string[] | null }) {
   const mono = mode === "mono"
   const ruined = mode === "ruin"
   const risen = mode === "rise" || ruined
-  const bodyColor = mono ? "#3a3a42" : ruined ? "#241016" : NIGHT
-  const capColor = mono ? "#5a5862" : ruined ? "#3a201c" : NIGHT_LIT
+  const themed = Boolean(colors) && (mode === "city" || mode === "rise")
+  const bodyColor = themed && colors ? mixHex("#000000", colors[0], 0.62) : mono ? "#3a3a42" : ruined ? "#241016" : NIGHT
+  const capColor = themed && colors ? colors[2] : mono ? "#5a5862" : ruined ? "#3a201c" : NIGHT_LIT
   const columns = risen
     ? rise.map((block, index) => {
         const left = ruined ? Math.max(18, Math.round(block.height * (0.2 + unit(index + 3) * 0.48))) : block.height
@@ -230,8 +247,8 @@ function SkyBuildings({ mode }: { mode: Exclude<SkyMode, "desert"> }) {
           cap: block.cap,
           capH: block.capH,
           antenna: block.antenna && !ruined,
-          antennaColor: BLUE,
-          roof: ruined || mono ? "" : block.roof,
+          antennaColor: themed && colors ? colors[1] : BLUE,
+          roof: ruined || mono ? "" : themed && colors ? (block.roof ? colors[4] : "") : block.roof,
         }
       })
     : buildings.map((building) => ({
@@ -240,14 +257,15 @@ function SkyBuildings({ mode }: { mode: Exclude<SkyMode, "desert"> }) {
         cap: building.cap ? building.cap[0] : 0,
         capH: building.cap ? building.cap[1] : 0,
         antenna: Boolean(building.antenna) && !mono,
-        antennaColor: building.antenna ?? BLUE,
-        roof: mono ? "" : (building.roof ?? ""),
+        antennaColor: themed && colors ? colors[1] : (building.antenna ?? BLUE),
+        roof: mono ? "" : themed && colors ? (building.roof ? colors[4] : "") : (building.roof ?? ""),
       }))
 
   return (
     <div className="pixel-skyline">
       {columns.map((block, index) => {
-        const paintLight = (color: string) => (ruined ? "#6a3040" : mono ? "#d4d0d8" : color)
+        const paintLight = (color: string) =>
+          themed && colors ? (color === BLUE ? colors[1] : colors[3]) : ruined ? "#6a3040" : mono ? "#d4d0d8" : color
         const bodyLights = lights(block.width, block.height, index + 2).map((spot) => ({
           ...spot,
           color: paintLight(spot.color),
@@ -276,7 +294,9 @@ function SkyBuildings({ mode }: { mode: Exclude<SkyMode, "desert"> }) {
                   background: capColor,
                 }}
               >
-                {block.roof ? <i className="pixel-roof" style={{ background: mono ? "#8e8a96" : block.roof }} /> : null}
+                {block.roof ? (
+                  <i className="pixel-roof" style={{ background: mono ? "#8e8a96" : block.roof }} />
+                ) : null}
                 <Windows spots={capLights} />
               </span>
             ) : null}
@@ -296,9 +316,26 @@ function SkyBuildings({ mode }: { mode: Exclude<SkyMode, "desert"> }) {
 
 export function PixelSky({ year }: { year: number }) {
   const mode = skyMode(year)
+  const colors = worldPalette(year)
+  const paletteStyle = colors
+    ? ({
+        background: skyBackground(year, colors),
+        "--plant": colors[4],
+        "--plant-dark": colors[2],
+        "--plant-sand": colors[0],
+        "--plant-mist": colors[1],
+        "--plant-ink": colors[3],
+      } as CSSProperties)
+    : undefined
 
   return (
-    <div className={mode === "mono" ? "pixel-sky pixel-sky-mono" : "pixel-sky"} data-sky={mode} aria-hidden>
+    <div
+      className={mode === "mono" ? "pixel-sky pixel-sky-mono" : "pixel-sky"}
+      data-sky={mode}
+      data-palette={colors ? String(year) : undefined}
+      style={paletteStyle}
+      aria-hidden
+    >
       {motes.map((mote) => (
         <span
           key={`${mote.left}-${mote.top}`}
@@ -308,7 +345,7 @@ export function PixelSky({ year }: { year: number }) {
             top: mote.top,
             width: mote.size,
             height: mote.size,
-            background: tone(mote.color, mode),
+            background: tone(mote.color, mode, colors),
             animationDelay: mote.delay,
             animationDuration: mote.duration,
           }}
@@ -319,13 +356,13 @@ export function PixelSky({ year }: { year: number }) {
           {[0, 1].map((copy) => (
             <div key={copy} className="pixel-lane-set">
               {lane.shapes.map((shape, index) => (
-                <Cloud key={`${copy}-${index}`} shape={shape} mode={mode} />
+                <Cloud key={`${copy}-${index}`} shape={shape} mode={mode} colors={colors} />
               ))}
             </div>
           ))}
         </div>
       ))}
-      {mode === "desert" ? <DesertScrub /> : <SkyBuildings mode={mode} />}
+      {mode === "desert" ? <DesertScrub /> : <SkyBuildings mode={mode} colors={colors} />}
     </div>
   )
 }

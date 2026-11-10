@@ -3,7 +3,7 @@
 import { useEffect, useId, useRef, useState } from "react"
 import type { PersonId, PersonTint, SoilLayer } from "@/data/moments"
 import { firstBuildings, sampleSoil, townspeople } from "@/data/moments"
-import { palette } from "@/lib/palette"
+import { palette, yearWorld } from "@/lib/palette"
 
 const COLS = 8
 const ROWS = 7
@@ -26,16 +26,12 @@ const colonies: { col: number; row: number; levels: number; tint: "gold" | "clay
 ]
 
 const colonyPaint = {
-  gold: { top: "#ffe14a", left: "#a16207", right: "#f5b942" },
-  clay: { top: "#ff7a3c", left: "#9a3412", right: "#ea580c" },
-  leaf: { top: "#9bef55", left: "#3f6212", right: "#65a30d" },
+  gold: { top: "#A16B3D", left: "#1E3006", right: "#547211" },
+  clay: { top: "#754678", left: "#1E3006", right: "#A16B3D" },
+  leaf: { top: "#547211", left: "#1E3006", right: "#86D2D7" },
 } as const
 
 const STONE = { top: "#d7c4a8", left: "#6b5344", right: "#a88868" }
-const ROOF = {
-  clay: "#c45528",
-  slate: "#5c5346",
-} as const
 
 const personPaint: Record<PersonTint, { top: string; left: string; right: string; head: string }> = {
   denim: { top: "#3d5a80", left: "#1d3557", right: "#7aa2c4", head: "#f0c9a0" },
@@ -88,6 +84,7 @@ type IsometricGroundProps = {
   onCloseLens: () => void
   activePerson: PersonId | null
   onPickPerson: (id: PersonId) => void
+  onClearPerson: () => void
 }
 
 function sectorCode(col: number, row: number) {
@@ -99,8 +96,14 @@ function hash(col: number, row: number) {
   return n - Math.floor(n)
 }
 
-function groundColor(col: number, row: number, mode: "earth" | "war" | "mono") {
+function groundColor(
+  col: number,
+  row: number,
+  mode: "earth" | "war" | "mono",
+  tiles?: readonly string[],
+) {
   const n = hash(col, row)
+  if (tiles && mode === "earth") return tiles[Math.floor(n * tiles.length)]
   if (mode === "mono") {
     const grays = ["#d4cedc", "#b7b0c2", "#8f879c", "#6e687a", "#c3bccc"]
     return grays[Math.floor(n * grays.length)]
@@ -294,6 +297,7 @@ export function IsometricGround({
   onCloseLens,
   activePerson,
   onPickPerson,
+  onClearPerson,
 }: IsometricGroundProps) {
   const stageRef = useRef<HTMLDivElement>(null)
   const svgRef = useRef<SVGSVGElement>(null)
@@ -369,13 +373,28 @@ export function IsometricGround({
   const extraSky = city ? 44 : 0
   const sceneView = `${minX} ${minY - extraSky} ${maxX - minX} ${maxY - minY + extraSky}`
   const groundMode = mono ? "mono" : war ? "war" : "earth"
+  const tileColors =
+    scene === "civilizacion"
+      ? yearWorld[2730]
+      : scene === "incertidumbre"
+        ? yearWorld[2945]
+        : scene === "baldio" || scene === "cerrado"
+          ? yearWorld[2568]
+          : undefined
+  const blockPaint =
+    scene === "incertidumbre"
+      ? { top: "#795E5B", left: "#50403E", right: "#821103" }
+      : scene === "civilizacion"
+        ? { top: "#75B4C2", left: "#6C8074", right: "#716B83" }
+        : null
+  const roofColor = scene === "incertidumbre" ? "#00F3E1" : scene === "civilizacion" ? "#660414" : null
   const sceneLabel =
     scene === "civilizacion"
       ? "Ciudad de 2730: edificios y personas de la vida común"
       : scene === "incertidumbre"
         ? "Ciudad de 2945"
         : scene === "guerra"
-          ? "Ciudad en guerra: bloques rotos y láser rosa"
+          ? "Ciudad en guerra: bloques rotos"
           : scene === "postguerra"
             ? "Ciudad de 3030 en monocromo, gente uniforme"
             : "Terreno baldío en vista isométrica"
@@ -392,7 +411,7 @@ export function IsometricGround({
         {ordered.map((cell) => {
           const key = `${cell.col}-${cell.row}`
           const selected = selectedKey === key
-          const fill = groundColor(cell.col, cell.row, groundMode)
+          const fill = groundColor(cell.col, cell.row, groundMode, tileColors)
           const blocks = camps
             ? colonies.filter((colony) => colony.col === cell.col && colony.row === cell.row)
             : []
@@ -417,8 +436,11 @@ export function IsometricGround({
                 onMouseEnter={() => soil && setHover(key)}
                 onMouseLeave={() => setHover((current) => (current === key ? null : current))}
                 onClick={(event) => {
-                  if (!soil) return
-                  takeSample(cell, anchorFromClient(event.clientX, event.clientY))
+                  if (soil) {
+                    takeSample(cell, anchorFromClient(event.clientX, event.clientY))
+                    return
+                  }
+                  if (crowd) onClearPerson()
                 }}
                 onKeyDown={(event) => {
                   if (!soil) return
@@ -444,8 +466,8 @@ export function IsometricGround({
                     cy={cell.y}
                     levels={war ? Math.max(1, stack.levels - 1) : stack.levels}
                     hw={18}
-                    paint={mono ? ASH : war ? RUIN : STONE}
-                    top={mono || war ? undefined : stack.roof ? ROOF[stack.roof] : undefined}
+                    paint={mono ? ASH : war ? RUIN : (blockPaint ?? STONE)}
+                    top={mono || war ? undefined : roofColor && stack.roof ? roofColor : undefined}
                   />
                   {war ? (
                     <BlockStack cx={cell.x + 16} cy={cell.y + 8} levels={1} hw={10} paint={RUIN} />

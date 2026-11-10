@@ -160,6 +160,7 @@ export function WorldShell({ onYear }: { onYear?: (year: number) => void }) {
               onCloseLens={() => setLensOpen(false)}
               activePerson={scene === "civilizacion" ? personId : null}
               onPickPerson={setPersonId}
+              onClearPerson={() => setPersonId(null)}
             />
           </div>
           {scene === "cerrado" ? (
@@ -255,23 +256,64 @@ function PersonFile({ person, onClose }: { person: Person; onClose: () => void }
 }
 
 function LupineMark({ pressed, onClick }: { pressed: boolean; onClick: () => void }) {
+  const edge = "#1a0a06"
   return (
     <button
       type="button"
       onClick={onClick}
       aria-pressed={pressed}
       aria-label="Lupine, fuera del mapa. Abrir la nota"
-      className="absolute top-1/2 left-2 z-20 flex -translate-y-1/2 flex-col items-start gap-1 border-0 bg-transparent p-0"
+      className="absolute bottom-14 left-1 z-20 flex flex-col items-start gap-1 border-0 bg-transparent p-0"
     >
-      <svg width="78" height="64" viewBox="0 0 78 64" aria-hidden>
-        <polygon points="18,28 30,22 30,46 18,40" fill="#1d4ed8" stroke="#1a0a06" strokeWidth="2" />
-        <polygon points="30,28 42,22 42,46 30,40" fill="#4d8cff" stroke="#1a0a06" strokeWidth="2" />
-        <polygon points="22,16 34,16 38,24 18,24" fill="#dbeafe" stroke="#1a0a06" strokeWidth="2" />
-        <polygon points="42,30 62,30 62,34 42,34" fill="#4d8cff" stroke="#1a0a06" strokeWidth="2" />
-        <polygon points="58,24 72,32 58,40" fill="#c45cff" stroke="#1a0a06" strokeWidth="2" />
+      <svg width="128" height="72" viewBox="0 0 128 72" aria-hidden>
+        <rect x="4" y="56" width="40" height="12" fill="#50403E" stroke={edge} strokeWidth="2" />
+        <rect x="48" y="58" width="30" height="10" fill="#795E5B" stroke={edge} strokeWidth="2" />
+        <rect x="12" y="46" width="16" height="12" fill="#115253" stroke={edge} strokeWidth="2" />
+        <rect x="54" y="46" width="16" height="12" fill="#115253" stroke={edge} strokeWidth="2" />
+        <rect x="6" y="24" width="68" height="24" fill="#50403E" stroke={edge} strokeWidth="2" />
+        <rect x="14" y="30" width="24" height="10" fill="#821103" stroke={edge} strokeWidth="2" />
+        <rect x="22" y="12" width="30" height="14" fill="#795E5B" stroke={edge} strokeWidth="2" />
+        <rect x="42" y="16" width="6" height="6" fill="#00F3E1" />
+        <rect x="0" y="30" width="8" height="16" fill="#795E5B" stroke={edge} strokeWidth="2" />
+        <rect x="72" y="30" width="26" height="12" fill="#50403E" stroke={edge} strokeWidth="2" />
+        <rect x="96" y="32" width="16" height="8" fill="#821103" stroke={edge} strokeWidth="2" />
+        <rect x="110" y="34" width="14" height="4" fill="#00F3E1" />
       </svg>
-      <span className="pixel-chip">Lupine</span>
+      <span className="pixel-chip" style={pressed ? { background: "#50403E", color: "#f6edff" } : undefined}>
+        Lupine
+      </span>
     </button>
+  )
+}
+
+const riflePieces = [
+  "Membrana de tejido orgánico",
+  "Condensador",
+  "Boca de arma",
+  "Plasma condensado",
+  "Placas polarizadoras",
+  "Reserva de plasma: munición de plasma humano, descarga ~1,7 MW",
+  "ATF aid: auto tracking focus",
+  "Cámara espectrográfica",
+  "Lente teleobjetivo 35–400 mm",
+  "Sensores IR, LiDAR, UV y UAV (sensor topográfico)",
+]
+
+function RifleBreakdown() {
+  return (
+    <div className="mt-5">
+      <h2 className="text-xl">AMR-652-4</h2>
+      <p className="mt-1 text-xs leading-relaxed" style={{ color: "#f6edff" }}>
+        Rifle antimaterial. 1,2 m.
+      </p>
+      <ul className="mt-3 space-y-1.5">
+        {riflePieces.map((piece) => (
+          <li key={piece} className="text-xs leading-relaxed" style={{ color: "#f6edff" }}>
+            {piece}
+          </li>
+        ))}
+      </ul>
+    </div>
   )
 }
 
@@ -363,7 +405,7 @@ function MomentBlurb({
   const layers = reading?.layers ?? soilPalette.map((layer) => ({ ...layer, pct: 0 }))
 
   return (
-    <aside className="pixel-panel flex flex-col p-5 sm:p-6">
+    <aside className="pixel-panel flex max-h-[34rem] flex-col overflow-y-auto p-5 sm:p-6">
       <p className="text-[11px] tracking-[0.12em] uppercase" style={{ color: palette.oroszlan }}>
         {moment.kicker}
       </p>
@@ -422,6 +464,7 @@ function MomentBlurb({
             Lupine no vive en una baldosa. Está fuera de la ciudad y la señala. Estas dos frases son flavor: el archivo no guarda su voz, solo el gesto.
           </p>
           <Population2945 />
+          <RifleBreakdown />
           <button type="button" onClick={onFire} className="pixel-btn mt-5 w-fit">
             FIRE
           </button>

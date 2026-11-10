@@ -52,7 +52,7 @@ export const moments: Moment[] = [
     title: "Incertidumbre política",
     blurb:
       "La ciudad sigue en pie y el siglo se llena. La política se vuelve incierta. Lupine no es un edificio: está al costado, fuera del mapa, y señala hacia la ciudad.",
-    note: "Pulsa a Lupine. La nota, las cifras y el botón FIRE aparecen al lado.",
+    note: "Pulsa a Lupine. La nota, las cifras, el despiece del rifle y el botón FIRE aparecen al lado.",
   },
   {
     id: "guerra",
@@ -186,10 +186,10 @@ export type SoilLayer = {
 }
 
 export const soilPalette: { id: SoilLayerId; label: string; color: string; base: number }[] = [
-  { id: "suelo", label: "Suelo", color: "#f0c14a", base: 44 },
-  { id: "roca", label: "Roca", color: "#8a4b32", base: 28 },
-  { id: "agua", label: "Agua", color: "#3de4ff", base: 17 },
-  { id: "restos", label: "Restos", color: "#c45cff", base: 11 },
+  { id: "suelo", label: "Suelo", color: "#A16B3D", base: 44 },
+  { id: "roca", label: "Roca", color: "#754678", base: 28 },
+  { id: "agua", label: "Agua", color: "#86D2D7", base: 17 },
+  { id: "restos", label: "Restos", color: "#547211", base: 11 },
 ]
 
 export function sampleSoil(col: number, row: number, take: number): SoilLayer[] {
