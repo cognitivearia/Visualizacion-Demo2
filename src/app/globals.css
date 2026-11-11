@@ -171,9 +171,62 @@
   animation: rise 0.7s ease-out both;
 }
 
+@keyframes hotspot-pulse {
+  0%,
+  100% {
+    opacity: 0.45;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.hotspot-pulse {
+  animation: hotspot-pulse 1.6s steps(4, end) infinite;
+}
+
+@keyframes fire-flicker {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
+}
+
+.fire-flicker {
+  animation: fire-flicker 0.45s steps(2, end) infinite;
+  transform-box: fill-box;
+  transform-origin: center bottom;
+}
+
+@keyframes fire-flash {
+  0% {
+    opacity: 0;
+  }
+  12% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+.fire-flash {
+  animation: fire-flash 1.1s ease-out forwards;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .spark-line,
-  .bar-rise {
+  .bar-rise,
+  .hotspot-pulse,
+  .fire-flicker,
+  .fire-flash {
     animation: none;
+  }
+  /* Sin animación, el destello no debe quedarse tapando la pantalla. */
+  .fire-flash {
+    display: none;
   }
 }

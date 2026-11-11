@@ -16,6 +16,7 @@ import { project } from "@/data/catalog"
 
 const links = [
   { href: "/", label: "Archivo" },
+  { href: "/varhegy", label: "Várhegy" },
   { href: "/datos", label: "Fuentes" },
 ]
 

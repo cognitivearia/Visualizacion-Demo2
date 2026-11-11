@@ -1,0 +1,7 @@
+zona,control,col,fila,muertos_bando,nota
+Ciudad Alta,Régimen (Oroszlan),6,1,4395500,BORRADOR. muertos_bando es del bando entero: 25 % de los 17.582.000 que faltan en la ciudad. No sumar las filas del mismo bando.
+Distrito Industrial,Régimen (Oroszlan),1,2,4395500,BORRADOR. Mismo total del bando.
+Barrio del Río,Oposición (Polip),4,4,4395500,BORRADOR. 25 %.
+Casco Viejo,Oposición (Polip),5,6,4395500,BORRADOR. 25 %.
+Línea del Frente,En disputa,4,3,7032800,BORRADOR. 40 %. Más bajas en el frente.
+Campamentos,Desplazados,1,7,1758200,BORRADOR. 10 %.

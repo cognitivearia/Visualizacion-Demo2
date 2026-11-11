@@ -3,6 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "sync:csv": "node scripts/sync-csv.mjs",
+    "predev": "node scripts/sync-csv.mjs",
+    "prebuild": "node scripts/sync-csv.mjs",
     "dev": "next dev --port 43127 --hostname 127.0.0.1",
     "build": "next build && node scripts/prepare-pages.mjs",
     "export:pages": "NEXT_PUBLIC_BASE_PATH=/Visualizacion-Demo npm run build",
@@ -13,6 +16,7 @@
     "@base-ui/react": "^1.8.0",
     "class-variance-authority": "^0.7.1",
     "cn": "^0.3.0",
+    "gsap": "^3.15.1",
     "lucide-react": "^1.46.0",
     "motion": "^13.3.0",
     "next": "16.3.5",
