@@ -230,3 +230,309 @@
     display: none;
   }
 }
+
+.pixel-shell {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background-color: #2a0b55;
+  color: #f6edff;
+  font-family: var(--font-redaction), ui-sans-serif, system-ui, sans-serif;
+  font-weight: 400;
+  -webkit-font-smoothing: auto;
+  -moz-osx-font-smoothing: auto;
+}
+
+.pixel-shell h1,
+.pixel-shell h2,
+.pixel-shell .font-heading {
+  font-family: var(--font-bitcount), ui-sans-serif, system-ui, sans-serif;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  line-height: 1.15;
+  text-transform: none;
+  -webkit-font-smoothing: none;
+}
+
+.pixel-shell svg {
+  shape-rendering: crispEdges;
+}
+
+.pixel-frame {
+  border: 3px solid #4d8cff;
+  background: #16042e;
+  box-shadow: 6px 6px 0 #c45cff;
+}
+
+.pixel-panel {
+  border: 3px solid #c45cff;
+  background: #16042e;
+  box-shadow: 6px 6px 0 #4d8cff;
+}
+
+.pixel-chip {
+  border: 2px solid #4d8cff;
+  background: #120228;
+  color: #d7e6ff;
+  padding: 4px 8px;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.pixel-btn {
+  border: 2px solid #4d8cff;
+  background: #4d8cff;
+  color: #140228;
+  padding: 8px 12px;
+  box-shadow: 3px 3px 0 #c45cff;
+}
+
+.pixel-btn:hover {
+  border-color: #c45cff;
+  background: #c45cff;
+  box-shadow: 3px 3px 0 #4d8cff;
+}
+
+.pixel-btn:focus-visible {
+  outline: 2px solid #f6edff;
+  outline-offset: 2px;
+}
+
+.pixel-veil {
+  background-color: rgb(22 4 46 / 55%);
+}
+
+.pixel-shell > :not(.pixel-sky) {
+  position: relative;
+  z-index: 1;
+}
+
+.pixel-sky {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.pixel-sky-mono {
+  background: #141418;
+}
+
+.pixel-cactus {
+  position: relative;
+  width: 10px;
+  flex: none;
+  background: #3f8f2a;
+}
+
+.pixel-sky[data-palette] .pixel-cactus {
+  background: var(--plant);
+}
+
+.pixel-cactus-arm {
+  position: absolute;
+  top: 14px;
+  left: 10px;
+  width: 14px;
+  height: 8px;
+  background: #2f6b22;
+  box-shadow: 10px -8px 0 #3f8f2a;
+}
+
+.pixel-sky[data-palette] .pixel-cactus-arm {
+  background: var(--plant-dark);
+  box-shadow: 10px -8px 0 var(--plant);
+}
+
+.pixel-bush {
+  flex: none;
+  background: #5c8a32;
+  box-shadow:
+    8px -8px 0 #7da33a,
+    16px 0 0 #3f6b24,
+    4px 8px 0 #c4a35a;
+}
+
+.pixel-sky[data-palette] .pixel-bush {
+  background: var(--plant);
+  box-shadow:
+    8px -8px 0 var(--plant-sand),
+    16px 0 0 var(--plant-dark),
+    4px 8px 0 var(--plant-mist);
+}
+
+.pixel-tuft {
+  flex: none;
+  background: #c4a35a;
+  box-shadow: 0 -8px 0 #8fbf45;
+}
+
+.pixel-sky[data-palette] .pixel-tuft {
+  background: var(--plant-sand);
+  box-shadow: 0 -8px 0 var(--plant-ink);
+}
+
+.pixel-rubble {
+  position: absolute;
+  right: -8px;
+  bottom: 0;
+  width: 14px;
+  height: 8px;
+  background: #1a0c10;
+}
+
+.pixel-mote {
+  position: absolute;
+  animation: pixel-blink 2.8s steps(2, end) infinite;
+}
+
+.pixel-lane {
+  position: absolute;
+  left: 0;
+  display: flex;
+  width: 200%;
+  animation: pixel-drift 32s steps(40, end) infinite;
+}
+
+.pixel-lane-set {
+  display: flex;
+  width: 50%;
+  justify-content: space-around;
+  align-items: flex-start;
+}
+
+.pixel-cloud {
+  position: relative;
+  width: 64px;
+  height: 32px;
+  flex: none;
+}
+
+.pixel-cloud i,
+.pixel-window,
+.pixel-antenna i {
+  position: absolute;
+  display: block;
+  width: 8px;
+  height: 8px;
+}
+
+.pixel-skyline {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 0 12px;
+}
+
+.pixel-build {
+  position: relative;
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  align-items: center;
+}
+
+.pixel-slab {
+  position: relative;
+  flex: none;
+}
+
+.pixel-roof {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 4px;
+}
+
+.pixel-window {
+  width: 4px;
+  height: 4px;
+  animation: pixel-blink 2.6s steps(2, end) infinite;
+}
+
+.pixel-antenna {
+  position: absolute;
+  top: -14px;
+  left: 50%;
+  width: 2px;
+  height: 14px;
+  margin-left: -1px;
+  background: #3a1468;
+}
+
+.pixel-sky[data-palette] .pixel-antenna {
+  background: var(--plant-dark);
+}
+
+.pixel-antenna i {
+  top: -4px;
+  left: 0;
+  width: 4px;
+  height: 4px;
+  margin-left: -1px;
+  animation: pixel-blink 1.4s steps(2, end) infinite;
+}
+
+@keyframes pixel-drift {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes pixel-blink {
+  0%,
+  45% {
+    opacity: 1;
+  }
+  55%,
+  100% {
+    opacity: 0.15;
+  }
+}
+
+.fire-flash {
+  background-color: rgb(255 79 163 / 0);
+  animation: fire-flash 1.6s linear forwards;
+}
+
+@keyframes fire-flash {
+  0% {
+    background-color: rgb(255 79 163 / 0);
+    animation-timing-function: ease-in;
+  }
+  30% {
+    background-color: #ff4fa3;
+    animation-timing-function: ease-in;
+  }
+  52% {
+    background-color: #ffffff;
+  }
+  74% {
+    background-color: #ffffff;
+    animation-timing-function: ease-out;
+  }
+  100% {
+    background-color: rgb(255 255 255 / 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pixel-lane,
+  .pixel-window,
+  .pixel-mote,
+  .pixel-antenna i,
+  .fire-flash {
+    animation: none;
+  }
+}

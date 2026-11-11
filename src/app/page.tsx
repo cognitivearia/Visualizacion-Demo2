@@ -18,11 +18,14 @@ export default function HomePage() {
             Archivo de un planeta partido.
           </h1>
           <p className="max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg">
-            {project.blurb} Azul, verde y morado marcan los datos; el resto es gris púrpura, como el resto del mapa.
+            {project.blurb} Nuestros colores nacionales nos mostraran esto.
           </p>
           <div className="flex flex-wrap gap-2">
             <Link href="/graficos/mapa" className={buttonVariants()}>
               Abrir el mapa
+            </Link>
+            <Link href="/mundo" className={buttonVariants({ variant: "outline" })}>
+              Ver el mundo
             </Link>
             <Link href="/datos" className={buttonVariants({ variant: "outline" })}>
               Fuentes del censo
