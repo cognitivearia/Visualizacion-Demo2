@@ -1,13 +1,15 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
+import { ChevronLeft, ChevronRight } from "lucide-react"
+import { Button } from "@/components/ui/button"
 import { scenes } from "@/data/varhegy"
 import { habitantesDe, type Habitante } from "@/data/varhegy-habitantes"
 import { vidaDe, type VidaUrbana } from "@/data/varhegy-vida"
 import { palette as brand, mixHex } from "@/lib/palette"
 import { cn } from "@/lib/utils"
-import { GroundScale } from "./ground-scale"
-import { project, rhombus } from "./iso-primitives"
+import { GroundScale, ScaleKey } from "./ground-scale"
+import { TH, TW, UNIT, project, rhombus } from "./iso-primitives"
 import { Building } from "./sprites"
 import { ModalShell } from "./modal-shell"
 
@@ -27,10 +29,58 @@ const STREET = [
   "1..1.1..1.",
 ]
 
-/** Dónde se para cada persona (columna, fila). Se reutiliza para cualquier año. */
+/** Dónde se para cada persona (columna, fila) en 2945, sobre la calle entera. */
 const SPOTS: Array<[number, number]> = [
   [1, 1], [2, 3], [3, 2], [4, 1], [5, 3], [6, 2], [7, 1], [8, 3], [2, 2], [8, 2],
 ]
+
+/**
+ * 2730 se recorre en 5 tramos, de izquierda a derecha, como en el dibujo de Mari.
+ * Cada tramo son 2 columnas de la calle y 2 personas.
+ */
+export const STREET_SLICES = 5
+const SLICE_COLS = STREET[0].length / STREET_SLICES
+
+const SLICE_SPOTS: Array<[number, number]> = [
+  [0, 1], [1, 3],
+  [2, 1], [3, 3],
+  [4, 1], [5, 3],
+  [6, 1], [7, 3],
+  [8, 1], [9, 3],
+]
+
+/** Qué tramo abre una casilla de la calle en el mapa de la ciudad (8×8). */
+export function sliceForStreetCell(col: number, row: number) {
+  const along = row === 3 ? col : row
+  return Math.min(STREET_SLICES - 1, Math.floor((along / 8) * STREET_SLICES))
+}
+
+export function sliceViewBox(slice: number) {
+  const start = slice * SLICE_COLS
+  let minX = Infinity
+  let minY = Infinity
+  let maxX = -Infinity
+  let maxY = -Infinity
+  for (let col = start; col < start + SLICE_COLS; col += 1) {
+    for (let row = 0; row < STREET.length; row += 1) {
+      const { x, y } = project(col, row)
+      const ch = STREET[row][col] ?? "."
+      const floors = /^[1-9]$/.test(ch) ? Number(ch) : 0
+      minX = Math.min(minX, x - TW / 2)
+      maxX = Math.max(maxX, x + TW / 2)
+      const lift = Math.max(floors * UNIT + (floors >= 5 ? 16 : 0), 52)
+      minY = Math.min(minY, y - lift)
+      maxY = Math.max(maxY, y + TH / 2)
+    }
+  }
+  const padX = 28
+  const padY = 18
+  return `${minX - padX} ${minY - padY} ${maxX - minX + padX * 2} ${maxY - minY + padY * 2}`
+}
+
+export function sliceStart(slice: number) {
+  return slice * SLICE_COLS
+}
 
 const SKIN = ["#f1c9a5", "#d9a66f", "#b9814f", "#8a5a34", "#e8b98f"]
 const HAIR = ["#2b1d12", "#5a3b1e", "#1a1a22", "#8a6a3a", "#3a2a2a"]
@@ -285,17 +335,39 @@ export function StreetZoom({
   year,
   cityPopulation,
   onClose,
+  initialSlice,
 }: {
   year: number
   cityPopulation: string
   onClose: () => void
+  /** En 2730 y 2945, el tramo de la calle que se abre. */
+  initialSlice?: number
 }) {
   const people = habitantesDe(year)
+  const sliced = initialSlice !== undefined
+  const [slice, setSlice] = useState(initialSlice ?? 0)
   const [selected, setSelected] = useState<number | null>(null)
   const scene = scenes.find((item) => item.year === year)
   const colors = scene?.palette
   const person = selected === null ? null : people[selected]
   const city = vidaDe(year)
+  const spots = sliced ? SLICE_SPOTS : SPOTS
+  const startCol = sliceStart(slice)
+
+  useEffect(() => {
+    if (!sliced) return
+    function onKey(event: KeyboardEvent) {
+      if (event.key === "ArrowRight") moveSlice(Math.min(STREET_SLICES - 1, slice + 1))
+      if (event.key === "ArrowLeft") moveSlice(Math.max(0, slice - 1))
+    }
+    window.addEventListener("keydown", onKey)
+    return () => window.removeEventListener("keydown", onKey)
+  }, [sliced, slice])
+
+  function moveSlice(next: number) {
+    setSlice(next)
+    setSelected(null)
+  }
 
   // Las casillas se dibujan de atrás hacia delante.
   const cells = STREET.flatMap((line, row) =>
@@ -303,7 +375,8 @@ export function StreetZoom({
   ).sort((a, b) => a.col + a.row - (b.col + b.row))
 
   const standing = people
-    .map((p, index) => ({ person: p, index, spot: SPOTS[index % SPOTS.length] }))
+    .map((p, index) => ({ person: p, index, spot: spots[index % spots.length] }))
+    .filter((item) => !sliced || (item.spot[0] >= startCol && item.spot[0] < startCol + SLICE_COLS))
     .sort((a, b) => a.spot[0] + a.spot[1] - (b.spot[0] + b.spot[1]))
 
   return (
@@ -312,20 +385,45 @@ export function StreetZoom({
       onClose={onClose}
       className="max-w-5xl md:p-8"
     >
-      <header className="mb-4 space-y-1 pr-10">
-        <p className="font-heading text-xs tracking-widest text-primary">{year} · La calle</p>
-        <p className="text-sm text-muted-foreground">
-          Muestra de {people.length} personas de una ciudad de {cityPopulation} habitantes. Toca a
-          alguien para abrir su expediente. Las losas del suelo comparan la ciudad, el país y
-          Karpatenland.
+      <header className="mb-4 space-y-3 pr-10">
+        <p className="font-heading text-xs tracking-widest text-primary">
+          {year} · {sliced ? `Casilla ${slice + 1} de ${STREET_SLICES}` : "La calle"}
         </p>
+        {sliced ? (
+          <div className="flex items-center justify-between gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => moveSlice(slice - 1)}
+              disabled={slice === 0}
+            >
+              <ChevronLeft />
+              Anterior
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => moveSlice(slice + 1)}
+              disabled={slice === STREET_SLICES - 1}
+            >
+              Siguiente
+              <ChevronRight />
+            </Button>
+          </div>
+        ) : (
+          <p className="text-sm text-muted-foreground">
+            Muestra de {people.length} personas de una ciudad de {cityPopulation} habitantes. Toca a
+            alguien para abrir su expediente. Las losas del suelo comparan la ciudad, el país y
+            Karpatenland.
+          </p>
+        )}
       </header>
 
       <div className="flex flex-col gap-6 md:flex-row md:items-start">
+        <div className="min-w-0 flex-1 overflow-hidden rounded-lg" style={{ backgroundColor: colors?.sky ?? "#222" }}>
         <svg
-          viewBox={VIEW_BOX}
-          className="w-full min-w-0 flex-1 rounded-lg"
-          style={{ backgroundColor: colors?.sky ?? "#222" }}
+          viewBox={sliced ? sliceViewBox(slice) : VIEW_BOX}
+          className="block w-full"
           role="group"
           aria-label={`Calle de Várhegy con ${people.length} personas`}
         >
@@ -385,8 +483,12 @@ export function StreetZoom({
             />
           ))}
 
-          <GroundScale part="labels" year={year} cityColor={colors?.building ?? "#c97b5a"} />
+          {sliced ? null : (
+            <GroundScale part="labels" year={year} cityColor={colors?.building ?? "#c97b5a"} />
+          )}
         </svg>
+        {sliced && <ScaleKey year={year} cityColor={colors?.building ?? "#c97b5a"} />}
+        </div>
 
         <div className="w-full shrink-0 md:w-80">
           {person && selected !== null ? (

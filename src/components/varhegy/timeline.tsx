@@ -24,20 +24,25 @@ export function Timeline({ scenes, index, onSelect }: TimelineProps) {
           {scenes.map((scene, i) => {
             const active = i === index
             const passed = i <= index
+            const locked = scene.year >= 2999 && scenes[index].year < 2999
             return (
               <li key={scene.id} className="flex w-0 justify-center">
                 <button
                   type="button"
                   onClick={() => onSelect(i)}
+                  disabled={locked}
                   aria-current={active ? "step" : undefined}
-                  className="group flex w-24 flex-col items-center gap-1.5 rounded-md px-1 pb-1 outline-none focus-visible:ring-2 focus-visible:ring-ring sm:w-32"
+                  className="group flex w-24 flex-col items-center gap-1.5 rounded-md px-1 pb-1 outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-default sm:w-32"
                 >
                   <span
                     className={cn(
                       "block size-5 rotate-45 border-2 transition-colors motion-reduce:transition-none",
                       passed
                         ? "border-primary bg-primary"
-                        : "border-border bg-background group-hover:border-primary",
+                        : cn(
+                            "border-border bg-background",
+                            !locked && "group-hover:border-primary",
+                          ),
                       active && "ring-4 ring-primary/30",
                     )}
                     aria-hidden

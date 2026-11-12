@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { medidaDe } from "@/data/varhegy-escala"
 import { rifle, rifleParts, type RiflePartId } from "@/data/varhegy-rifle"
 import { mixHex } from "@/lib/palette"
+import { withBasePath } from "@/lib/base-path"
 import { cn } from "@/lib/utils"
 import { ModalShell } from "./modal-shell"
 
@@ -164,180 +165,25 @@ function SizeCompare() {
 }
 
 // ------------------------------------------------------------------- rifle
+// El despiece es el video de Mari. Las fichas de las piezas siguen debajo.
 
-/** Caja de cada pieza en el dibujo montado: [x, y, ancho, alto]. */
-const BOX: Record<RiflePartId, [number, number, number, number]> = {
-  placas: [10, 120, 150, 100],
-  plasma: [40, 146, 80, 48],
-  boca: [170, 150, 36, 40],
-  condensador: [214, 142, 26, 56],
-  reserva: [248, 128, 170, 84],
-  membrana: [418, 138, 22, 64],
-  cuerpo: [330, 96, 400, 34],
-  atf: [350, 78, 26, 18],
-  camara: [560, 62, 74, 34],
-  lente: [638, 66, 62, 28],
-}
-
-function PartShape({ id }: { id: RiflePartId }) {
-  switch (id) {
-    case "placas":
-      return (
-        <g>
-          <rect x={10} y={120} width={150} height={22} fill={METAL} />
-          <rect x={14} y={134} width={142} height={6} fill={PINK} />
-          <rect x={10} y={198} width={150} height={22} fill={METAL} />
-          <rect x={14} y={200} width={142} height={6} fill={PINK} />
-        </g>
-      )
-    case "plasma":
-      return (
-        <g fill={PINK}>
-          <rect x={52} y={165} width={56} height={10} />
-          <rect x={75} y={150} width={10} height={40} />
-          <rect x={60} y={154} width={8} height={8} />
-          <rect x={92} y={154} width={8} height={8} />
-          <rect x={60} y={178} width={8} height={8} />
-          <rect x={92} y={178} width={8} height={8} />
-        </g>
-      )
-    case "boca":
-      return (
-        <g>
-          <rect x={170} y={150} width={36} height={40} fill={DARK} />
-          <rect x={182} y={164} width={12} height={12} fill="#0b0912" />
-        </g>
-      )
-    case "condensador":
-      return (
-        <g>
-          <rect x={214} y={142} width={26} height={56} fill={DARK} />
-          <rect x={220} y={150} width={14} height={40} fill={METAL} />
-        </g>
-      )
-    case "reserva":
-      return (
-        <g>
-          <rect x={248} y={128} width={170} height={84} fill={PURPLE} />
-          {[0, 1, 2, 3, 4].map((i) => (
-            <rect key={i} x={262 + i * 34} y={128} width={10} height={84} fill={mixHex(PURPLE, "#ffffff", 0.18)} />
-          ))}
-        </g>
-      )
-    case "membrana":
-      return (
-        <g>
-          <rect x={418} y={138} width={22} height={64} fill={PINK} />
-          <rect x={424} y={150} width={10} height={40} fill="#c1204f" />
-        </g>
-      )
-    case "cuerpo":
-      return (
-        <g>
-          <rect x={330} y={96} width={400} height={26} fill={METAL} />
-          <rect x={440} y={122} width={60} height={8} fill={DARK} />
-        </g>
-      )
-    case "atf":
-      return (
-        <g>
-          <rect x={350} y={78} width={26} height={18} fill={DARK} />
-          <rect x={360} y={84} width={6} height={6} fill="#ff4fd8" />
-        </g>
-      )
-    case "camara":
-      return (
-        <g>
-          <rect x={560} y={62} width={74} height={34} fill="#1d2140" />
-          <rect x={568} y={68} width={32} height={22} fill="#4d5bd6" />
-          <rect x={606} y={68} width={8} height={8} fill="#3dffb0" />
-          <rect x={618} y={68} width={8} height={8} fill="#ff4f4f" />
-          <rect x={606} y={80} width={8} height={8} fill="#ffb84d" />
-          <rect x={618} y={80} width={8} height={8} fill="#ffffff" />
-        </g>
-      )
-    case "lente":
-      return (
-        <g>
-          <rect x={638} y={70} width={52} height={20} fill={DARK} />
-          <rect x={690} y={66} width={10} height={28} fill={METAL} />
-        </g>
-      )
-  }
-}
+const RIFLE_VIDEO = "/referencias/rifle-amr-652-4-despiece.mp4"
 
 function RifleView({ firing, onFire }: { firing: boolean; onFire: () => void }) {
-  const [spread, setSpread] = useState(60)
   const [selected, setSelected] = useState<RiflePartId>("reserva")
-  const t = spread / 100
   const part = rifleParts.find((item) => item.id === selected) ?? rifleParts[0]
 
   return (
     <div className="space-y-4">
-      <svg
-        viewBox="-110 -45 940 290"
-        className="w-full rounded-lg bg-[#150f26]"
-        role="group"
+      <video
+        controls
+        playsInline
+        preload="metadata"
+        className="w-full rounded-lg bg-white"
         aria-label={`Despiece del rifle ${rifle.name}`}
       >
-        {firing && (
-          <rect x={-110} y={166} width={280} height={8} fill={PINK} className="hotspot-pulse" />
-        )}
-        {rifleParts.map((item) => {
-          const [bx, by, bw, bh] = BOX[item.id]
-          const active = item.id === selected
-          return (
-            <g
-              key={item.id}
-              role="button"
-              tabIndex={0}
-              aria-pressed={active}
-              aria-label={item.name}
-              onClick={() => setSelected(item.id)}
-              onKeyDown={(event) => {
-                if (event.key === "Enter" || event.key === " ") {
-                  event.preventDefault()
-                  setSelected(item.id)
-                }
-              }}
-              className="cursor-pointer outline-none transition-transform duration-300 motion-reduce:transition-none [&:focus-visible_.part-box]:stroke-white"
-              style={{
-                transform: `translate(${item.explode.dx * t}px, ${item.explode.dy * t}px)`,
-              }}
-              shapeRendering="crispEdges"
-            >
-              <PartShape id={item.id} />
-              <rect
-                className="part-box"
-                x={bx - 4}
-                y={by - 4}
-                width={bw + 8}
-                height={bh + 8}
-                fill="transparent"
-                stroke={active ? "#ffffff" : "transparent"}
-                strokeWidth={2}
-                strokeDasharray="5 4"
-              />
-            </g>
-          )
-        })}
-      </svg>
-
-      <div className="flex items-center gap-3">
-        <label htmlFor="despiece" className="text-sm text-muted-foreground">
-          Despiece
-        </label>
-        <input
-          id="despiece"
-          type="range"
-          min={0}
-          max={100}
-          value={spread}
-          onChange={(event) => setSpread(Number(event.target.value))}
-          className="h-2 flex-1 cursor-pointer accent-primary"
-        />
-        <span className="w-10 text-right font-mono text-sm tabular-nums">{spread} %</span>
-      </div>
+        <source src={withBasePath(RIFLE_VIDEO)} type="video/mp4" />
+      </video>
 
       <div className="rounded-md bg-background/60 p-4 ring-1 ring-foreground/10" aria-live="polite">
         <h3 className="font-heading text-sm tracking-wide">{part.name}</h3>

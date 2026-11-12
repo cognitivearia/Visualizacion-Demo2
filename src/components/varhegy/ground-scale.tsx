@@ -1,5 +1,4 @@
 import { escalaDe } from "@/data/varhegy"
-import { formatPeople } from "@/lib/format"
 import { mixHex } from "@/lib/palette"
 import { TH, project, rhombus } from "./iso-primitives"
 
@@ -37,6 +36,48 @@ function escalaVisual(year: number, cityColor: string) {
   }
 }
 
+function porCien(parte: number) {
+  if (parte >= 99.5) return "100"
+  if (parte < 0.05) return "<1"
+  if (parte >= 9.95) return String(Math.round(parte))
+  return parte.toLocaleString("es-ES", { minimumFractionDigits: 1, maximumFractionDigits: 1 })
+}
+
+function millones(personas: number) {
+  const m = personas / 1_000_000
+  if (m >= 1000) {
+    return Math.round(m)
+      .toString()
+      .replace(/\B(?=(\d{3})+(?!\d))/g, ".")
+  }
+  if (m >= 100) return String(Math.round(m))
+  return m.toLocaleString("es-ES", { maximumFractionDigits: 1 })
+}
+
+function lineas(data: NonNullable<ReturnType<typeof escalaVisual>>) {
+  const { escala } = data
+  const base = escala.region
+  return [
+    {
+      name: "Karpatenland",
+      millones: millones(escala.region),
+      share: "100",
+      color: REGION_EDGE,
+    },
+    {
+      name: "País",
+      millones: millones(escala.pais),
+      share: porCien((escala.pais / base) * 100),
+      color: COUNTRY_EDGE,
+    },
+    {
+      name: "Ciudad",
+      millones: millones(escala.ciudad),
+      share: porCien((escala.ciudad / base) * 100),
+      color: "#fff8ea",
+    },
+  ]
+}
 export function GroundScale({
   year,
   cityColor,
@@ -87,30 +128,19 @@ function Labels({
 }: {
   data: NonNullable<ReturnType<typeof escalaVisual>>
 }) {
-  const { escala, cityFill } = data
+  const lines = lineas(data)
   const { x, y } = SEAL
-  const lines = [
-    { name: "Ciudad", value: formatPeople(escala.ciudad), color: cityFill },
-    { name: "País", value: formatPeople(escala.pais), color: COUNTRY_EDGE },
-    { name: "Karpatenland", value: formatPeople(escala.region), color: REGION_EDGE },
-  ]
-  const bottom = y + OUTER * (TH / 2)
+  const top = y - OUTER * (TH / 2)
 
   return (
     <g
       role="img"
       pointerEvents="none"
-      aria-label={`Escala en el suelo. La ciudad tiene ${formatPeople(escala.ciudad)} habitantes, el país ${formatPeople(escala.pais)} y Karpatenland ${formatPeople(escala.region)}. El tamaño de cada losa sigue cuánta gente vive ahí.`}
+      aria-label={`Karpatenland tiene ${lines[0].millones} millones de habitantes. El país tiene ${lines[1].millones} millones, ${lines[1].share} de cada 100. La ciudad tiene ${lines[2].millones} millones, ${lines[2].share} de cada 100.`}
     >
-      <polyline
-        points={`${x},${bottom} ${x},${bottom + 18} ${-158},${bottom + 22}`}
-        fill="none"
-        stroke={REGION_EDGE}
-        strokeWidth={1.25}
-      />
       <g
         fontFamily="var(--font-heading), sans-serif"
-        fontSize={12}
+        fontSize={11}
         fill="#f4efe6"
         stroke="#100c14"
         strokeWidth={2.5}
@@ -118,17 +148,41 @@ function Labels({
         strokeLinejoin="round"
       >
         {lines.map((line, index) => {
-          const ly = bottom + 36 + index * 15
+          const ly = top - 8 - index * 14
           return (
             <g key={line.name}>
-              <polygon points={rhombus(-166, ly - 4, 0.14)} fill={line.color} stroke="none" />
-              <text x={-154} y={ly}>
-                {line.name} {line.value}
+              <polygon points={rhombus(x - 78, ly - 4, 0.12)} fill={line.color} stroke="none" />
+              <text x={x - 64} y={ly}>
+                {line.name} {line.millones} millones
               </text>
             </g>
           )
         })}
       </g>
     </g>
+  )
+}
+
+export function ScaleKey({ year, cityColor }: { year: number; cityColor: string }) {
+  const data = escalaVisual(year, cityColor)
+  if (!data) return null
+  const lines = lineas(data)
+  return (
+    <div className="space-y-2 px-3 pb-3" aria-label={lines.map((line) => `${line.name}: ${line.millones} millones`).join(", ")}>
+      <p className="text-sm text-[#f4efe6]">
+        <span className="font-mono text-base tabular-nums">{lines[0].millones}</span> millones de
+        habitantes en Karpatenland
+      </p>
+      <ul className="grid grid-cols-3 gap-2">
+        {lines.map((line) => (
+          <li key={line.name} className="min-w-0">
+            <span className="mb-1.5 block h-1.5 w-full" style={{ backgroundColor: line.color }} aria-hidden />
+            <span className="block text-[11px] leading-tight text-[#c8c0d4]">{line.name}</span>
+            <span className="font-mono text-sm tabular-nums text-[#f4efe6]">{line.millones}</span>
+            <span className="block text-[11px] leading-tight text-[#c8c0d4]">millones · {line.share} de 100</span>
+          </li>
+        ))}
+      </ul>
+    </div>
   )
 }

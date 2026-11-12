@@ -21,7 +21,7 @@ import {
 import { LensStrata } from "./lens-strata"
 import { RegimeStreet } from "./regime-street"
 import { LupineZoom } from "./lupine-zoom"
-import { StreetZoom } from "./street-zoom"
+import { sliceForStreetCell, StreetZoom } from "./street-zoom"
 import { WarMap } from "./war-map"
 
 /** Escenario isométrico de Várhegy (las piezas de dibujo están en iso-primitives.tsx). */
@@ -105,10 +105,12 @@ export function IsoStage({
   )
   const [open, setOpen] = useState<HotspotAction | null>(null)
   const [zoneLabel, setZoneLabel] = useState<string | null>(null)
+  const [streetSlice, setStreetSlice] = useState(0)
   const { palette } = scene
 
-  function activate(action: HotspotAction, label: string) {
+  function activate(action: HotspotAction, label: string, slice = 0) {
     setZoneLabel(label)
+    setStreetSlice(slice)
     setOpen(action)
   }
 
@@ -180,41 +182,53 @@ export function IsoStage({
           )
         })}
 
-        {zones.map(({ hotspot, cells: zoneCells }) => {
-          const only = zoneCells.length === 1 ? zoneCells[0] : undefined
-          const tone = only ? (fuegoEn(only.col, only.row)?.color ?? palette.accent) : palette.accent
-          return (
-          <g
-            key={hotspot.action + hotspot.label}
-            role="button"
-            tabIndex={0}
-            aria-label={`${hotspot.label}. ${scene.interaction.detail}`}
-            onClick={() => activate(hotspot.action, hotspot.label)}
-            onKeyDown={(event) => {
-              if (event.key === "Enter" || event.key === " ") {
-                event.preventDefault()
-                activate(hotspot.action, hotspot.label)
-              }
-            }}
-            className="cursor-pointer outline-none [&:focus-visible_polygon]:stroke-[3]"
-          >
-            {zoneCells.map((cell) => {
-              const { x, y } = project(cell.col, cell.row)
-              return (
-                <polygon
-                  key={`hot-${cell.col}-${cell.row}`}
-                  points={rhombus(x, y, 0.94)}
-                  fill={tone}
-                  fillOpacity={0.14}
-                  stroke={tone}
-                  strokeWidth={2}
-                  className="hotspot-pulse"
-                  shapeRendering="crispEdges"
-                />
-              )
-            })}
-          </g>
-          )
+        {zones.flatMap(({ hotspot, cells: zoneCells }) => {
+          const perCell =
+            hotspot.action === "street" && (scene.year === 2730 || scene.year === 2945)
+          const groups = perCell
+            ? zoneCells.map((cell) => ({
+                cells: [cell],
+                slice: sliceForStreetCell(cell.col, cell.row),
+              }))
+            : [{ cells: zoneCells, slice: undefined as number | undefined }]
+          return groups.map((group) => {
+            const only = group.cells.length === 1 ? group.cells[0] : undefined
+            const tone = only ? (fuegoEn(only.col, only.row)?.color ?? palette.accent) : palette.accent
+            const label =
+              group.slice === undefined ? hotspot.label : `${hotspot.label}, casilla ${group.slice + 1}`
+            return (
+              <g
+                key={`${hotspot.label}-${group.slice ?? "all"}-${only?.col ?? 0}-${only?.row ?? 0}`}
+                role="button"
+                tabIndex={0}
+                aria-label={label}
+                onClick={() => activate(hotspot.action, hotspot.label, group.slice ?? 0)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault()
+                    activate(hotspot.action, hotspot.label, group.slice ?? 0)
+                  }
+                }}
+                className="cursor-pointer outline-none [&:focus-visible_polygon]:stroke-[3]"
+              >
+                {group.cells.map((cell) => {
+                  const { x, y } = project(cell.col, cell.row)
+                  return (
+                    <polygon
+                      key={`hot-${cell.col}-${cell.row}`}
+                      points={rhombus(x, y, 0.94)}
+                      fill={tone}
+                      fillOpacity={0.14}
+                      stroke={tone}
+                      strokeWidth={2}
+                      className="hotspot-pulse"
+                      shapeRendering="crispEdges"
+                    />
+                  )
+                })}
+              </g>
+            )
+          })
         })}
       </svg>
 
@@ -223,6 +237,9 @@ export function IsoStage({
         <StreetZoom
           year={scene.year}
           cityPopulation={scene.stats[0]?.value ?? ""}
+          initialSlice={
+            scene.year === 2730 || scene.year === 2945 ? streetSlice : undefined
+          }
           onClose={() => setOpen(null)}
         />
       )}
@@ -232,15 +249,6 @@ export function IsoStage({
       {open === "regime" && <RegimeStreet onClose={() => setOpen(null)} />}
       {open === "lupine" && <LupineZoom onClose={() => setOpen(null)} onFire={advance} />}
 
-      <figcaption className="space-y-1 border-t border-white/10 bg-black/30 px-4 py-3 text-sm">
-        <p>
-          <span className="font-medium" style={{ color: palette.accent }}>
-            {scene.interaction.label}.
-          </span>{" "}
-          <span className="text-muted-foreground">{scene.interaction.detail}</span>
-        </p>
-        <p className="text-xs text-muted-foreground">Pulsa la zona resaltada del mapa.</p>
-      </figcaption>
     </figure>
   )
 }

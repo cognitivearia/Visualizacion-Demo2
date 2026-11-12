@@ -101,9 +101,9 @@ export const scenes: Scene[] = [
     id: "prehistoria",
     year: 2568,
     short: "Prehistoria",
-    title: "Antes de la ciudad",
+    title: "Las primeras raíces",
     blurb:
-      "Antes de que exista colonización o expansión, el territorio que será Karpatenland es tierra baldía: chozas de palo y pequeñas tribus indígenas. Bajo el suelo, sin que nadie lo sepa, duerme el Lenario, el metal que más adelante impulsará la tecnología de toda la historia.",
+      "Durante el siglo 36, 90 años luego del primer exódo, el territorio indigena habitado por los nómadas sobrevivientes de la guerra que \"reinicio\" al mundo, Naolla, sin saberlo sería la cuna del nuevo renacimiento y la futura Karpatenland, gracias a sus suelos ricos en Lenario.",
     layout: [
       "........",
       "..h.....",
@@ -137,9 +137,9 @@ export const scenes: Scene[] = [
     id: "primera-civilizacion",
     year: 2730,
     short: "Primera civilización",
-    title: "La primera ciudad",
+    title: "Nuestra capital",
     blurb:
-      "Siglos después, Várhegy es una ciudad de calles y edificios bajos, parecida a Bogotá en 2024. La vida corriente llena sus calles. En el censo de este año, la mayor parte del país simpatiza con Oroszlan, y una minoría con la oposición Polip.",
+      "Siglos después, Váhergy es una ciudad de calles pequeñas y edificios bajos, los vecinos se conocen entre ellos, pero los retazos de las generaciones que migraron fuera del planeta estan resurgiendo y la política mundial se empieza a ver manipulada nuevamente.",
     layout: [
       "11.=.22.",
       "1..=..1.",
@@ -187,7 +187,7 @@ export const scenes: Scene[] = [
     short: "Incertidumbre",
     title: "La noche se acerca",
     blurb:
-      "Los edificios crecen y la ciudad se acerca a una noche permanente. Karpatenland alcanza su pico de población, pero la incertidumbre política crece. Entonces aparece LUPINE, el mecha que destruirá la ciudad.",
+      "Los edificios crecen y la ciudad se acerca a una noche permanente. Karpatenland alcanza su pico de población, pero la incertidumbre política crece. Mientras tanto una figura gigante nos mira con la misma frialdad que nos mira nuestro futuro.",
     layout: [
       "35.=.46.",
       "4..=..5.",
@@ -268,7 +268,7 @@ export const scenes: Scene[] = [
     short: "Posguerra",
     title: "Un solo color",
     blurb:
-      "En 3030 todo el estado es de un solo color: el azul de Oroszlan. Las personas visten uniforme y varios LUPINE vigilan el mundo. La ciudad que se opuso ya no ofrece datos: solo uniformes, militantes y banderas.",
+      "En 3030 todo el estado es de un solo color: el azul de Oroszlan. Las personas visten uniforme y varios LUPINE vigilan el mundo. Esta ciudad que alguna vez fue un bastión para el mundo libre, es ahora un mar de plata sin voz.",
     layout: [
       "44.=.44.",
       "4..=.L.4",
